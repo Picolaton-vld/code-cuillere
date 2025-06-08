@@ -12,7 +12,6 @@
 <%- include('partials/footer') %>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
 <style>
-/* Pour forcer toutes les images dans les popup Leaflet à s'afficher en portrait */
 .leaflet-popup-content img {
   height: 180px !important;
   width: auto !important;
@@ -20,6 +19,42 @@
   margin: 0 auto;
   object-fit: contain;
 }
+/* Carousel styles for popup */
+.carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 220px;
+  height: 180px;
+  overflow: hidden;
+  margin: 0 auto 8px auto;
+}
+.carousel-images img {
+  display: none;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+}
+.carousel-images img.active {
+  display: block;
+}
+.carousel-prev, .carousel-next {
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  border: none;
+  font-size: 1.5em;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  border-radius: 50%;
+}
+.carousel-prev { left: 2px; }
+.carousel-next { right: 2px; }
 </style>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
@@ -40,17 +75,67 @@
       !isNaN(post.location.coordinates.lng)
     ) {
       markerCount++;
-      const marker = L.marker([post.location.coordinates.lat, post.location.coordinates.lng]).addTo(map);
-      marker.bindPopup(
-        '<b>' + post.userId.username + '</b><br>' +
-        (post.location.name ? '<i>' + post.location.name + '</i><br>' : '') +
-        // NOTE: ici on ne met plus width, mais height (portrait)
-        '<img src="' + post.image + '" style="height:180px; display:block; margin:0 auto; object-fit:contain;"><br>' +
-        (post.caption || "")
-      );
+      // Génération du carrousel HTML
+      let imagesHtml = '';
+      if (post.images && post.images.length > 0) {
+        imagesHtml += `
+          <div class="carousel" data-post="${post._id}">
+            <button class="carousel-prev" type="button" onclick="prevSlide('${post._id}')">&#8249;</button>
+            <div class="carousel-images">
+              ${post.images.map((img, idx) =>
+                `<img src="${img}" alt="Image du post" class="carousel-image${idx===0?' active':''}" data-idx="${idx}">`
+              ).join('')}
+            </div>
+            <button class="carousel-next" type="button" onclick="nextSlide('${post._id}')">&#8250;</button>
+          </div>
+        `;
+      }
+      const popupContent = `
+        <b>${post.userId.username}</b><br>
+        ${post.location.name ? `<i>${post.location.name}</i><br>` : ''}
+        ${imagesHtml}
+        <div>${post.caption || ""}</div>
+      `;
+      L.marker([post.location.coordinates.lat, post.location.coordinates.lng]).addTo(map)
+        .bindPopup(popupContent);
     }
   });
   if (markerCount === 0) {
     document.getElementById('no-marker-warning').style.display = 'block';
   }
+
+  // Carousel logic for popups
+  function nextSlide(postId) {
+    const carousel = document.querySelector('.carousel[data-post="'+postId+'"]');
+    if (!carousel) return;
+    const images = carousel.querySelectorAll('.carousel-image');
+    let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+    if(current === -1) current = 0;
+    images[current].classList.remove('active');
+    let next = (current + 1) % images.length;
+    images[next].classList.add('active');
+  }
+  function prevSlide(postId) {
+    const carousel = document.querySelector('.carousel[data-post="'+postId+'"]');
+    if (!carousel) return;
+    const images = carousel.querySelectorAll('.carousel-image');
+    let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+    if(current === -1) current = 0;
+    images[current].classList.remove('active');
+    let prev = (current - 1 + images.length) % images.length;
+    images[prev].classList.add('active');
+  }
+
+  // Important! Re-bind carousel logic when popup opens (because Leaflet re-renders its DOM)
+  map.on('popupopen', function(e) {
+    // On popup open, ensure only the first image is active
+    const popup = e.popup.getElement();
+    if(popup) {
+      const carousels = popup.querySelectorAll('.carousel');
+      carousels.forEach(carousel => {
+        const images = carousel.querySelectorAll('.carousel-image');
+        images.forEach((img, idx) => img.classList.toggle('active', idx === 0));
+      });
+    }
+  });
 </script>
