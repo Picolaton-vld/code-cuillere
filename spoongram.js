@@ -36,7 +36,7 @@ const User = mongoose.model('User', userSchema);
 // Post Schema/Model
 const Post = mongoose.model('Post', new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
- images: [{ type: String, required: true }],
+  images: [{ type: String, required: true }],
   caption: { type: String, default: '' },
   location: {
     name: { type: String },
@@ -76,30 +76,6 @@ passport.deserializeUser(async (id, done) => {
 const { storage } = require('./config/cloudinary'); // adapte le chemin si besoin
 const upload = multer({ storage });
 
-// Route pour mettre à jour l'avatar
-app.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
-  try {
-    if (!req.isAuthenticated()) {
-      req.flash('error', 'Veuillez vous connecter');
-      return res.redirect('/login');
-    }
-    if (!req.file) {
-      req.flash('error', 'Veuillez sélectionner une image');
-      return res.redirect('/profile');
-    }
-    console.log(req.file); // Ajoute ce log
-    req.user.avatar = req.file.path; // Ou adapte selon le log
-    await req.user.save();
-    req.flash('success', 'Avatar mis à jour !');
-    res.redirect('/profile');
-  } catch (e) {
-    console.error(e);
-    res.status(500).send(e.message);
-    req.flash('error', 'Erreur lors de la mise à jour de l\'avatar');
-    res.redirect('/profile');
-  }
-});
-
 // Middleware
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
@@ -128,6 +104,30 @@ const viewsDir = path.join(__dirname, 'views');
 if (!fs.existsSync(viewsDir)) fs.mkdirSync(viewsDir);
 
 // ROUTES
+
+// Route pour mettre à jour l'avatar (doit être APRES les middlewares)
+app.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      req.flash('error', 'Veuillez vous connecter');
+      return res.redirect('/login');
+    }
+    if (!req.file) {
+      req.flash('error', 'Veuillez sélectionner une image');
+      return res.redirect('/profile');
+    }
+    console.log(req.file); // Pour debug : regarde bien le champ contenant l'URL Cloudinary (path ? url ? secure_url ?)
+    req.user.avatar = req.file.path; // Adapte ici si besoin
+    await req.user.save();
+    req.flash('success', 'Avatar mis à jour !');
+    res.redirect('/profile');
+  } catch (e) {
+    console.error(e);
+    res.status(500).send(e.message);
+    // req.flash('error', 'Erreur lors de la mise à jour de l\'avatar');
+    // res.redirect('/profile'); // Evite double réponse HTTP !
+  }
+});
 
 // Accueil
 app.get('/', async (req, res) => {
@@ -178,7 +178,7 @@ app.post('/post', upload.array('images', 10), async (req, res) => {
     req.flash('error', 'Veuillez sélectionner au moins une image');
     return res.redirect('/');
   }
-const images = req.files.map(file => file.path);
+  const images = req.files.map(file => file.path);
   const newPost = new Post({
     userId: req.user._id,
     images: images,
@@ -357,8 +357,6 @@ function logProjectConfig() {
   console.log(`Dépendances principales: ${Object.keys(projectConfig.dependencies).join(', ')}`);
 }
 
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
