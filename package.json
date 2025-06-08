@@ -5,11 +5,12 @@
   "scripts": {
     "start": "node spoongram.js"
   },
-  "dependencies": {
-    "express": "^5.1.0",
-    "dotenv": "^16.0.0",
-    "cloudinary": "^1.41.3",
-    "multer": "^2.0.1",
-    "multer-storage-cloudinary": "^4.0.0"
-  }
+ "dependencies": {
+  "express": "^5.1.0",
+  "dotenv": "^16.0.0",
+  "mongoose": "^8.0.0",
+  "cloudinary": "^1.41.3",
+  "multer": "^2.0.1",
+  "multer-storage-cloudinary": "^4.0.0"
+}
 }
