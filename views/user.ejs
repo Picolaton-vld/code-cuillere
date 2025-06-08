@@ -1,0 +1,63 @@
+<%- include('partials/header') %>
+<main class="container">
+  <div class="profile-header">
+    <img src="<%= user.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" style="width:100px;height:100px;border-radius:50%;">
+    <div class="profile-info">
+      <h2><%= user.username %></h2>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <strong><%= posts.length %></strong> publications
+        </div>
+        <div class="profile-stat">
+          <strong><%= user.followers ? user.followers.length : 0 %></strong> abonnés
+        </div>
+        <div class="profile-stat">
+          <strong><%= user.following ? user.following.length : 0 %></strong> abonnements
+        </div>
+      </div>
+      <% if (currentUser && currentUser._id.toString() !== user._id.toString()) { %>
+        <% 
+          const isFollowing = user.followers.some(f => 
+            (f._id ? f._id.toString() : f.toString()) === currentUser._id.toString()
+          );
+        %>
+        <% if (isFollowing) { %>
+          <form action="/unfollow/<%= user._id %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-unfollow">Se désabonner</button>
+          </form>
+        <% } else { %>
+          <form action="/follow/<%= user._id %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-follow">S’abonner</button>
+          </form>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+  <div class="profile-posts">
+    <% if (posts.length === 0) { %>
+      <p>Aucune publication pour le moment.</p>
+    <% } %>
+    <% posts.forEach(function(post) { %>
+      <div class="post-card">
+        <% if (post.images && post.images[0]) { %>
+          <img src="<%= post.images[0] %>" style="max-width:200px;">
+        <% } %>
+        <div>
+          <strong><%= user.username %></strong>
+          <span><%= post.caption %></span>
+        </div>
+        <a href="/post/<%= post._id %>">Voir le post</a>
+      </div>
+    <% }); %>
+  </div>
+</main>
+<%- include('partials/footer') %>
+
+<style>
+.btn-follow {
+  background: #2d87f0; color: #fff; padding: 6px 14px; border-radius: 4px; border:none; cursor:pointer;
+}
+.btn-unfollow {
+  background: #ccc; color: #333; padding: 6px 14px; border-radius: 4px; border:none; cursor:pointer;
+}
+</style>
