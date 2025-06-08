@@ -55,7 +55,42 @@ const Post = mongoose.model('Post', new mongoose.Schema({
   }],
   createdAt: { type: Date, default: Date.now }
 }));
+// Voir le profil de n'importe quel utilisateur
+app.get('/user/:id', async (req, res) => {
+  const user = await User.findById(req.params.id).populate('followers').populate('following');
+  if (!user) return res.redirect('/');
+  const posts = await Post.find({ userId: user._id }).sort({ createdAt: -1 });
+  // Passe aussi currentUser à la vue
+  res.render('user', { user, posts, currentUser: req.user });
+});
 
+// Suivre un utilisateur
+app.post('/follow/:id', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  if (req.user._id.equals(req.params.id)) return res.redirect('/profile');
+  const userToFollow = await User.findById(req.params.id);
+  if (!userToFollow) return res.redirect('/');
+  if (!userToFollow.followers.some(f => f.equals(req.user._id))) {
+    userToFollow.followers.push(req.user._id);
+    req.user.following.push(userToFollow._id);
+    await userToFollow.save();
+    await req.user.save();
+  }
+  res.redirect('/user/' + userToFollow._id);
+});
+
+// Se désabonner
+app.post('/unfollow/:id', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  if (req.user._id.equals(req.params.id)) return res.redirect('/profile');
+  const userToUnfollow = await User.findById(req.params.id);
+  if (!userToUnfollow) return res.redirect('/');
+  userToUnfollow.followers = userToUnfollow.followers.filter(f => !f.equals(req.user._id));
+  req.user.following = req.user.following.filter(f => !f.equals(userToUnfollow._id));
+  await userToUnfollow.save();
+  await req.user.save();
+  res.redirect('/user/' + userToUnfollow._id);
+});
 // Passport config
 passport.use(new LocalStrategy(
   async (username, password, done) => {
