@@ -1,16 +1,22 @@
 <%- include('partials/header') %>
 <main class="container">
-  <div class="profile-header">
-    <img src="<%= user.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" style="width:100px;height:100px;border-radius:50%;">
-    <div class="profile-info">
-      <h2><%= user.username %></h2>
-      <div class="profile-stats">
-        <div class="profile-stat">
-          <strong><%= posts.length %></strong> publications
-        </div>
+<div class="profile-header">
+  <img src="<%= user.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" style="width:100px;height:100px;border-radius:50%;">
+  <div class="profile-info">
+    <h2><%= user.username %></h2>
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <strong><%= posts.length %></strong> publications
+      </div>
+      <div class="profile-stat">
+        <strong><%= user.followers ? user.followers.length : 0 %></strong> abonnés
+      </div>
+      <div class="profile-stat">
+        <strong><%= user.following ? user.following.length : 0 %></strong> abonnements
       </div>
     </div>
   </div>
+</div>>
   <form action="/profile/avatar" method="POST" enctype="multipart/form-data">
     <input type="file" name="avatar" accept="image/*" required>
     <button type="submit">Mettre à jour l'avatar</button>
