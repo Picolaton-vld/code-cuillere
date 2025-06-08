@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+<main class="container">
+  <h2>Flux de mes abonnements</h2>
+  <div class="feed-posts">
+    <% if (posts.length === 0) { %>
+      <p>Aucun post pour l'instant. Suivez des utilisateurs pour voir leurs publications ici !</p>
+    <% } %>
+    <% posts.forEach(function(post) { %>
+      <div class="post-card">
+        <div>
+          <strong>
+            <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
+          </strong>
+          <span><%= post.caption %></span>
+        </div>
+        <% if (post.images && post.images[0]) { %>
+          <img src="<%= post.images[0] %>" style="max-width:200px;">
+        <% } %>
+        <div>
+          <span><%= post.likes.length %> likes</span>
+        </div>
+        <a href="/post/<%= post._id %>">Voir le post</a>
+      </div>
+    <% }); %>
+  </div>
+</main>
+<%- include('partials/footer') %>
