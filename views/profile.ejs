@@ -1,9 +1,7 @@
 <%- include('partials/header') %>
 <main class="container">
   <div class="profile-header">
-    <img src="<%= user.avatar || '/images/default-avatar.jpg' %>" 
-         alt="Avatar" 
-         style="width:100px;height:100px;border-radius:50%;">
+    <img src="<%= user.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" style="width:100px;height:100px;border-radius:50%;">
     <div class="profile-info">
       <h2><%= user.username %></h2>
       <div class="profile-stats">
@@ -19,10 +17,34 @@
   </form>
   <div class="profile-posts">
     <% posts.forEach(function(post) { %>
-      <div class="post">
+      <div class="post-card">
         <% post.images.forEach(function(img) { %>
-          <img src="<%= img %>" alt="Post">
+          <img src="<%= img %>" alt="Image du post" class="post-image">
         <% }) %>
+        <div class="post-caption">
+          <strong><%= post.userId.username %></strong>
+          <span><%= post.caption %></span>
+        </div>
+        <div class="post-actions">
+          <form action="/like/<%= post._id %>" method="POST" style="display:inline;">
+            <button type="submit" class="like-btn">
+              <%= post.likes && post.likes.some(function(like) { return like.equals(user._id); }) ? "💖" : "🤍" %>
+            </button>
+          </form>
+          <span><%= post.likes.length %> likes</span>
+        </div>
+        <div class="post-comments">
+          <% post.comments.forEach(function(comment) { %>
+            <div class="comment">
+              <strong><%= comment.userId && comment.userId.username ? comment.userId.username : "Utilisateur" %></strong>
+              <span><%= comment.text %></span>
+            </div>
+          <% }) %>
+          <form action="/comment/<%= post._id %>" method="POST" class="comment-form">
+            <input type="text" name="comment" placeholder="Ajouter un commentaire..." required>
+            <button type="submit">Publier</button>
+          </form>
+        </div>
         <div class="profile-post-actions">
           <a href="/post/<%= post._id %>/edit" class="btn btn-edit"><i class="fas fa-edit"></i></a>
           <form action="/post/<%= post._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ce post ?');">
