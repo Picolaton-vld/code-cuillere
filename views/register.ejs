@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+<main class="container">
+  <div class="card auth-form">
+    <h2><i class="fas fa-utensil-spoon"></i> SpoonGram</h2>
+    <p>Rejoignez la communauté des amateurs de cuillères</p>
+    <% if (error && error.length > 0) { %>
+      <div class="alert error"><%= error %></div>
+    <% } %>
+    <form action="/register" method="POST">
+      <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+      <input type="password" name="password" placeholder="Mot de passe" required>
+      <button type="submit">S'inscrire</button>
+    </form>
+    <p>Déjà un compte ? <a href="/login">Connectez-vous</a></p>
+  </div>
+</main>
+<%- include('partials/footer') %>

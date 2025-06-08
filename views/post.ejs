@@ -1,0 +1,40 @@
+<%- include('partials/header') %>
+<main class="container">
+  <div class="card post">
+    <div class="post-header">
+      <img src="<%= post.userId.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" class="avatar">
+      <span class="username"><%= post.userId.username %></span>
+      <% if (post.location && post.location.name) { %>
+        <span class="location"><i class="fas fa-map-marker-alt"></i> <%= post.location.name %></span>
+      <% } %>
+      <% if (currentUser && post.userId._id.toString() === currentUser._id.toString()) { %>
+        <span class="post-actions-btns">
+          <a href="/post/<%= post._id %>/edit" class="btn btn-edit"><i class="fas fa-edit"></i> Modifier</a>
+          <form action="/post/<%= post._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce post ?');">
+            <button type="submit" class="btn btn-delete"><i class="fas fa-trash"></i></button>
+          </form>
+        </span>
+      <% } %>
+    </div>
+    <img src="<%= post.image %>" alt="Photo de cuillère" class="post-image">
+    <div class="post-caption">
+      <strong><%= post.userId.username %></strong> <%= post.caption %>
+    </div>
+    <div class="comments">
+      <h3>Commentaires</h3>
+      <% post.comments.forEach(comment => { %>
+        <div class="comment">
+          <span class="comment-user"><%= comment.userId ? comment.userId.username : "[Utilisateur supprimé]" %></span>
+          <span class="comment-text"><%= comment.text %></span>
+        </div>
+      <% }); %>
+    </div>
+    <% if (currentUser) { %>
+      <form class="comment-form" action="/comment/<%= post._id %>" method="POST">
+        <input type="text" name="comment" placeholder="Ajouter un commentaire..." required>
+        <button type="submit">Publier</button>
+      </form>
+    <% } %>
+  </div>
+</main>
+<%- include('partials/footer') %>

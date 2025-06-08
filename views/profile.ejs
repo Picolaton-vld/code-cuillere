@@ -1,0 +1,37 @@
+<%- include('partials/header') %>
+<main class="container">
+  <div class="profile-header">
+<img src="<%= user.avatar || '/images/default-avatar.jpg' %>" 
+     alt="Avatar" 
+     style="width:100px;height:100px;border-radius:50%;">    <div class="profile-info">
+      <h2><%= user.username %></h2>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <strong><%= posts.length %></strong> publications
+        </div>
+      </div>
+    </div>
+  </div>
+<form action="/profile/avatar" method="POST" enctype="multipart/form-data">
+  <input type="file" name="avatar" accept="image/*" required>
+  <button type="submit">Mettre à jour l'avatar</button>
+</form>
+  <div class="prof<img src="<%= user.avatar || '/images/default-avatar.jpg' %>" 
+     alt="Avatar" 
+     style="width:100px;height:100px;border-radius:50%;">ile-posts">
+    <% posts.forEach(post => { %>
+      <div class="profile-post">
+        <a href="/post/<%= post._id %>">
+          <img src="<%= post.image %>" alt="Post">
+        </a>
+        <div class="profile-post-actions">
+          <a href="/post/<%= post._id %>/edit" class="btn btn-edit"><i class="fas fa-edit"></i></a>
+          <form action="/post/<%= post._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ce post ?');">
+            <button type="submit" class="btn btn-delete"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</main>
+<%- include('partials/footer') %>

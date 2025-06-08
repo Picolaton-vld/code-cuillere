@@ -1,0 +1,56 @@
+<%- include('partials/header') %>
+<main class="container">
+  <div class="card map-container">
+    <h2>Carte des cuillères</h2>
+    <p>Découvrez où les cuillères ont été trouvées dans le monde</p>
+    <div id="map" style="height:400px; border-radius:8px; margin-bottom: 10px;"></div>
+    <div id="no-marker-warning" style="display:none;color:#e74c3c;text-align:center;margin-top:15px;">
+      Aucun post géolocalisé à afficher. Ajoutez une cuillère avec coordonnées pour la voir sur la carte !
+    </div>
+  </div>
+</main>
+<%- include('partials/footer') %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+<style>
+/* Pour forcer toutes les images dans les popup Leaflet à s'afficher en portrait */
+.leaflet-popup-content img {
+  height: 180px !important;
+  width: auto !important;
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+}
+</style>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+  const posts = <%- posts %>;
+  const map = L.map('map').setView([46.6, 2.5], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let markerCount = 0;
+  posts.forEach(post => {
+    if (
+      post.location &&
+      post.location.coordinates &&
+      typeof post.location.coordinates.lat === "number" &&
+      typeof post.location.coordinates.lng === "number" &&
+      !isNaN(post.location.coordinates.lat) &&
+      !isNaN(post.location.coordinates.lng)
+    ) {
+      markerCount++;
+      const marker = L.marker([post.location.coordinates.lat, post.location.coordinates.lng]).addTo(map);
+      marker.bindPopup(
+        '<b>' + post.userId.username + '</b><br>' +
+        (post.location.name ? '<i>' + post.location.name + '</i><br>' : '') +
+        // NOTE: ici on ne met plus width, mais height (portrait)
+        '<img src="' + post.image + '" style="height:180px; display:block; margin:0 auto; object-fit:contain;"><br>' +
+        (post.caption || "")
+      );
+    }
+  });
+  if (markerCount === 0) {
+    document.getElementById('no-marker-warning').style.display = 'block';
+  }
+</script>

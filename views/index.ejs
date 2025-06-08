@@ -1,0 +1,239 @@
+<%- include('partials/header') %>
+<main class="container">
+  <% if (success && success.length > 0) { %>
+    <div class="alert success"><%= success %></div>
+  <% } %>
+  <% if (error && error.length > 0) { %>
+    <div class="alert error"><%= error %></div>
+  <% } %>
+
+  <% if (currentUser) { %>
+    <div class="card upload-form">
+      <h2>Partagez une nouvelle cuillère</h2>
+      <!-- MULTIPLE FILES -->
+      <form action="/post" method="POST" enctype="multipart/form-data">
+        <input type="file" name="images" accept="image/*" required multiple>
+        <input type="text" name="caption" placeholder="Description de votre cuillère..." required>
+        <input type="text" name="locationName" placeholder="Nom du lieu (optionnel)">
+        <div style="margin-bottom:10px;">
+          <label>Choisissez l'endroit sur la carte (optionnel)&nbsp;:</label>
+          <div id="pickermap" style="height:200px;border-radius:8px;border:1px solid #dbdbdb;"></div>
+        </div>
+        <input type="hidden" name="lat" id="lat">
+        <input type="hidden" name="lng" id="lng">
+        <button type="submit">Publier</button>
+      </form>
+    </div>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var pickerMap = L.map('pickermap').setView([46.6, 2.5], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pickerMap);
+        let marker;
+        pickerMap.on('click', function(e) {
+          if(marker) pickerMap.removeLayer(marker);
+          marker = L.marker(e.latlng).addTo(pickerMap);
+          document.getElementById('lat').value = e.latlng.lat;
+          document.getElementById('lng').value = e.latlng.lng;
+        });
+      });
+    </script>
+  <% } %>
+
+  <div class="posts">
+    <% posts.forEach((post, idx) => { %>
+      <div class="card post">
+        <div class="post-header">
+          <img src="<%= post.userId.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" class="avatar">
+          <span class="username"><%= post.userId.username %></span>
+          <% if (post.location && post.location.name) { %>
+            <span class="location"><i class="fas fa-map-marker-alt"></i> <%= post.location.name %></span>
+          <% } %>
+          <% if (currentUser && post.userId._id.toString() === currentUser._id.toString()) { %>
+            <span class="post-actions-btns">
+              <a href="/post/<%= post._id %>/edit" class="btn btn-edit"><i class="fas fa-edit"></i> Modifier</a>
+              <form action="/post/<%= post._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce post ?');">
+                <button type="submit" class="btn btn-delete"><i class="fas fa-trash"></i></button>
+              </form>
+            </span>
+          <% } %>
+        </div>
+
+        <!-- CARROUSEL D'IMAGES -->
+        <div class="carousel-container" id="carousel-<%= idx %>">
+          <% let images = post.images && post.images.length ? post.images : [post.image]; %>
+          <% images.forEach((img, i) => { %>
+            <img src="<%= img %>" alt="Photo de cuillère" class="post-image-fullwidth carousel-image" style="display: <%= i===0 ? 'block' : 'none' %>;">
+          <% }); %>
+          <% if (images.length > 1) { %>
+            <button class="carousel-btn prev" data-carousel="<%= idx %>">&#10094;</button>
+            <button class="carousel-btn next" data-carousel="<%= idx %>">&#10095;</button>
+            <div class="carousel-indicators">
+              <% images.forEach((img, i) => { %>
+                <span class="indicator<%= i===0 ? ' active' : '' %>" data-carousel="<%= idx %>" data-index="<%= i %>"></span>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+
+        <div class="post-actions">
+          <button class="like-btn" data-post-id="<%= post._id %>">
+            <i class="<%= post.likes.includes(currentUser && currentUser._id) ? 'fas' : 'far' %> fa-heart"></i> 
+            <span class="like-count"><%= post.likes.length %></span>
+          </button>
+          <a href="/post/<%= post._id %>" class="comment-btn">
+            <i class="far fa-comment"></i>
+          </a>
+        </div>
+        <div class="post-caption">
+          <strong><%= post.userId.username %></strong> <%= post.caption %>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</main>
+<%- include('partials/footer') %>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+<style>
+/* Pour les images dans le carrousel */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 15px auto;
+}
+.carousel-image {
+  width: 100%;
+  height: 300px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fafafa;
+  display: none;
+}
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(250,250,250,0.8);
+  border: none;
+  font-size: 2em;
+  padding: 0 12px;
+  border-radius: 30px;
+  cursor: pointer;
+  z-index: 10;
+  color: #ff6b6b;
+  box-shadow: 0 2px 8px #ccc;
+}
+.carousel-btn.prev { left: 10px; }
+.carousel-btn.next { right: 10px; }
+.carousel-indicators {
+  text-align: center;
+  margin-top: -20px;
+}
+.carousel-indicators .indicator {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  margin: 0 3px;
+  cursor: pointer;
+}
+.carousel-indicators .indicator.active { background: #ff6b6b; }
+</style>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+  // Carte Leaflet pour affichage des cuillères
+  const posts = <%- posts %>;
+  const map = L.map('map').setView([46.6, 2.5], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let markerCount = 0;
+  posts.forEach(post => {
+    if (
+      post.location &&
+      post.location.coordinates &&
+      typeof post.location.coordinates.lat === "number" &&
+      typeof post.location.coordinates.lng === "number" &&
+      !isNaN(post.location.coordinates.lat) &&
+      !isNaN(post.location.coordinates.lng)
+    ) {
+      markerCount++;
+      const marker = L.marker([post.location.coordinates.lat, post.location.coordinates.lng]).addTo(map);
+      marker.bindPopup(
+        '<b>' + post.userId.username + '</b><br>' +
+        (post.location.name ? '<i>' + post.location.name + '</i><br>' : '') +
+        '<img src="' + (post.images && post.images.length ? post.images[0] : post.image) + '" style="height:180px; display:block; margin:0 auto; object-fit:contain;"><br>' +
+        (post.caption || "")
+      );
+    }
+  });
+  if (markerCount === 0) {
+    document.getElementById('no-marker-warning').style.display = 'block';
+  }
+</script>
+<script>
+  // Gestion des likes
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.like-btn').forEach(button => {
+      button.addEventListener('click', async function() {
+        const postId = this.getAttribute('data-post-id');
+        const heartIcon = this.querySelector('i');
+        const likeCount = this.querySelector('.like-count');
+        try {
+          const response = await fetch(`/like/${postId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            credentials: 'same-origin'
+          });
+          const data = await response.json();
+          if (data.liked) {
+            heartIcon.classList.remove('far');
+            heartIcon.classList.add('fas');
+          } else {
+            heartIcon.classList.remove('fas');
+            heartIcon.classList.add('far');
+          }
+          likeCount.textContent = data.likes;
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      });
+    });
+
+    // CAROUSEL LOGIC
+    document.querySelectorAll('.carousel-container').forEach(function(container, idx) {
+      const images = container.querySelectorAll('.carousel-image');
+      let current = 0;
+
+      const showImage = (n) => {
+        images.forEach((img, i) => img.style.display = (i === n ? 'block' : 'none'));
+        const indicators = container.querySelectorAll('.indicator');
+        indicators.forEach((ind, i) => ind.classList.toggle('active', i === n));
+      };
+
+      const prevBtn = container.querySelector('.carousel-btn.prev');
+      const nextBtn = container.querySelector('.carousel-btn.next');
+      if (prevBtn && nextBtn) {
+        prevBtn.addEventListener('click', () => {
+          current = (current - 1 + images.length) % images.length;
+          showImage(current);
+        });
+        nextBtn.addEventListener('click', () => {
+          current = (current + 1) % images.length;
+          showImage(current);
+        });
+      }
+      const indicators = container.querySelectorAll('.indicator');
+      indicators.forEach((ind, i) => {
+        ind.addEventListener('click', () => {
+          current = i;
+          showImage(current);
+        });
+      });
+      showImage(0);
+    });
+  });
+</script>
