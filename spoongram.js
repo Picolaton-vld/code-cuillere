@@ -117,8 +117,6 @@ app.use((req, res, next) => {
 // EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-const uploadRoutes = require('./public/upload');
-app.use('/', uploadRoutes);
 const viewsDir = path.join(__dirname, 'views');
 if (!fs.existsSync(viewsDir)) fs.mkdirSync(viewsDir);
 
