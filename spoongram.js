@@ -78,19 +78,25 @@ const upload = multer({ storage });
 
 // Route pour mettre à jour l'avatar
 app.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
-  if (!req.isAuthenticated()) {
-    req.flash('error', 'Veuillez vous connecter');
-    return res.redirect('/login');
+  try {
+    if (!req.isAuthenticated()) {
+      req.flash('error', 'Veuillez vous connecter');
+      return res.redirect('/login');
+    }
+    if (!req.file) {
+      req.flash('error', 'Veuillez sélectionner une image');
+      return res.redirect('/profile');
+    }
+    console.log(req.file); // Ajoute ce log
+    req.user.avatar = req.file.path; // Ou adapte selon le log
+    await req.user.save();
+    req.flash('success', 'Avatar mis à jour !');
+    res.redirect('/profile');
+  } catch (e) {
+    console.error(e);
+    req.flash('error', 'Erreur lors de la mise à jour de l\'avatar');
+    res.redirect('/profile');
   }
-  if (!req.file) {
-    req.flash('error', 'Veuillez sélectionner une image');
-    return res.redirect('/profile');
-  }
-  // Met à jour l'avatar de l'utilisateur connecté
-  req.user.avatar = req.file.path; // URL Cloudinary
-  await req.user.save();
-  req.flash('success', 'Avatar mis à jour !');
-  res.redirect('/profile');
 });
 
 // Middleware
