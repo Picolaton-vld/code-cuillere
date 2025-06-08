@@ -1,4 +1,10 @@
 {
+  "name": "spoongram",
+  "version": "1.0.0",
+  "main": "spoongram.js",
+  "scripts": {
+    "start": "node spoongram.js"
+  },
   "dependencies": {
     "cloudinary": "^1.41.3",
     "multer": "^2.0.1",
