@@ -94,6 +94,7 @@ app.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
     res.redirect('/profile');
   } catch (e) {
     console.error(e);
+    res.status(500).send(e.message);
     req.flash('error', 'Erreur lors de la mise à jour de l\'avatar');
     res.redirect('/profile');
   }
