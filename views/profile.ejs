@@ -18,9 +18,17 @@
   <div class="profile-posts">
     <% posts.forEach(function(post) { %>
       <div class="post-card">
-        <% post.images.forEach(function(img) { %>
-          <img src="<%= img %>" alt="Image du post" class="post-image">
-        <% }) %>
+        <!-- Début du carrousel -->
+        <div class="carousel" data-post="<%= post._id %>">
+          <button class="carousel-prev" onclick="prevSlide('<%= post._id %>')" type="button">&#8249;</button>
+          <div class="carousel-images">
+            <% post.images.forEach(function(img, idx) { %>
+              <img src="<%= img %>" alt="Image du post" class="carousel-image <%= idx === 0 ? 'active' : '' %>" data-idx="<%= idx %>">
+            <% }) %>
+          </div>
+          <button class="carousel-next" onclick="nextSlide('<%= post._id %>')" type="button">&#8250;</button>
+        </div>
+        <!-- Fin du carrousel -->
         <div class="post-caption">
           <strong><%= post.userId.username %></strong>
           <span><%= post.caption %></span>
@@ -56,3 +64,62 @@
   </div>
 </main>
 <%- include('partials/footer') %>
+
+<!-- Ajoute le JS du carrousel -->
+<script>
+function nextSlide(postId) {
+  const carousel = document.querySelector('.carousel[data-post="'+postId+'"]');
+  const images = carousel.querySelectorAll('.carousel-image');
+  let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+  images[current].classList.remove('active');
+  let next = (current + 1) % images.length;
+  images[next].classList.add('active');
+}
+function prevSlide(postId) {
+  const carousel = document.querySelector('.carousel[data-post="'+postId+'"]');
+  const images = carousel.querySelectorAll('.carousel-image');
+  let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+  images[current].classList.remove('active');
+  let prev = (current - 1 + images.length) % images.length;
+  images[prev].classList.add('active');
+}
+</script>
+
+<!-- Ajoute le CSS minimaliste pour le carrousel (à déplacer dans ton fichier CSS principal si tu préfères) -->
+<style>
+.carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.carousel-images img {
+  display: none;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+}
+.carousel-images img.active {
+  display: block;
+}
+.carousel-prev, .carousel-next {
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  border: none;
+  font-size: 2em;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  border-radius: 50%;
+}
+.carousel-prev { left: 5px; }
+.carousel-next { right: 5px; }
+</style>
