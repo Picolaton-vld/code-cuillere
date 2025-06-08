@@ -44,7 +44,7 @@
   <div class="posts">
     <% posts.forEach((post, idx) => { %>
       <div class="card post">
-          <div class="post-header">
+        <div class="post-header">
           <img src="<%= post.userId.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" class="avatar">
           <span class="username">
             <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
