@@ -55,42 +55,7 @@ const Post = mongoose.model('Post', new mongoose.Schema({
   }],
   createdAt: { type: Date, default: Date.now }
 }));
-// Voir le profil de n'importe quel utilisateur
-app.get('/user/:id', async (req, res) => {
-  const user = await User.findById(req.params.id).populate('followers').populate('following');
-  if (!user) return res.redirect('/');
-  const posts = await Post.find({ userId: user._id }).sort({ createdAt: -1 });
-  // Passe aussi currentUser à la vue
-  res.render('user', { user, posts, currentUser: req.user });
-});
 
-// Suivre un utilisateur
-app.post('/follow/:id', async (req, res) => {
-  if (!req.user) return res.redirect('/login');
-  if (req.user._id.equals(req.params.id)) return res.redirect('/profile');
-  const userToFollow = await User.findById(req.params.id);
-  if (!userToFollow) return res.redirect('/');
-  if (!userToFollow.followers.some(f => f.equals(req.user._id))) {
-    userToFollow.followers.push(req.user._id);
-    req.user.following.push(userToFollow._id);
-    await userToFollow.save();
-    await req.user.save();
-  }
-  res.redirect('/user/' + userToFollow._id);
-});
-
-// Se désabonner
-app.post('/unfollow/:id', async (req, res) => {
-  if (!req.user) return res.redirect('/login');
-  if (req.user._id.equals(req.params.id)) return res.redirect('/profile');
-  const userToUnfollow = await User.findById(req.params.id);
-  if (!userToUnfollow) return res.redirect('/');
-  userToUnfollow.followers = userToUnfollow.followers.filter(f => !f.equals(req.user._id));
-  req.user.following = req.user.following.filter(f => !f.equals(userToUnfollow._id));
-  await userToUnfollow.save();
-  await req.user.save();
-  res.redirect('/user/' + userToUnfollow._id);
-});
 // Passport config
 passport.use(new LocalStrategy(
   async (username, password, done) => {
@@ -110,7 +75,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Multer (photos)
-const { storage } = require('./config/cloudinary'); // adapte le chemin si besoin
+const { storage } = require('./config/cloudinary');
 const upload = multer({ storage });
 
 // Middleware
@@ -153,16 +118,13 @@ app.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
       req.flash('error', 'Veuillez sélectionner une image');
       return res.redirect('/profile');
     }
-    console.log(req.file); // Pour debug : regarde bien le champ contenant l'URL Cloudinary (path ? url ? secure_url ?)
-    req.user.avatar = req.file.path; // Adapte ici si besoin
+    req.user.avatar = req.file.path;
     await req.user.save();
     req.flash('success', 'Avatar mis à jour !');
     res.redirect('/profile');
   } catch (e) {
     console.error(e);
     res.status(500).send(e.message);
-    // req.flash('error', 'Erreur lors de la mise à jour de l\'avatar');
-    // res.redirect('/profile'); // Evite double réponse HTTP !
   }
 });
 
@@ -170,6 +132,50 @@ app.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
 app.get('/', async (req, res) => {
   const posts = await Post.find().populate('userId').sort({ createdAt: -1 });
   res.render('index', { posts });
+});
+
+// Flux personnalisé : posts des gens suivis
+app.get('/feed', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  const user = await User.findById(req.user._id);
+  const posts = await Post.find({ userId: { $in: user.following } }).populate('userId').sort({ createdAt: -1 });
+  res.render('feed', { posts });
+});
+
+// Voir le profil d'un autre utilisateur
+app.get('/user/:id', async (req, res) => {
+  const user = await User.findById(req.params.id).populate('followers').populate('following');
+  if (!user) return res.redirect('/');
+  const posts = await Post.find({ userId: user._id }).sort({ createdAt: -1 });
+  res.render('user', { user, posts, currentUser: req.user });
+});
+
+// Suivre un utilisateur
+app.post('/follow/:id', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  if (req.user._id.equals(req.params.id)) return res.redirect('/profile');
+  const userToFollow = await User.findById(req.params.id);
+  if (!userToFollow) return res.redirect('/');
+  if (!userToFollow.followers.some(f => f.equals(req.user._id))) {
+    userToFollow.followers.push(req.user._id);
+    req.user.following.push(userToFollow._id);
+    await userToFollow.save();
+    await req.user.save();
+  }
+  res.redirect('/user/' + userToFollow._id);
+});
+
+// Se désabonner
+app.post('/unfollow/:id', async (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  if (req.user._id.equals(req.params.id)) return res.redirect('/profile');
+  const userToUnfollow = await User.findById(req.params.id);
+  if (!userToUnfollow) return res.redirect('/');
+  userToUnfollow.followers = userToUnfollow.followers.filter(f => !f.equals(req.user._id));
+  req.user.following = req.user.following.filter(f => !f.equals(userToUnfollow._id));
+  await userToUnfollow.save();
+  await req.user.save();
+  res.redirect('/user/' + userToUnfollow._id);
 });
 
 // Login/Register/Logout
@@ -341,14 +347,16 @@ app.get('/map', async (req, res) => {
   });
 });
 
-// Profil utilisateur
+// Profil utilisateur (profil connecté)
 app.get('/profile', async (req, res) => {
   if (!req.isAuthenticated()) {
     req.flash('error', 'Veuillez vous connecter');
     return res.redirect('/login');
   }
+  // On peuple followers et following !
+  const user = await User.findById(req.user._id).populate('followers').populate('following');
   const posts = await Post.find({ userId: req.user._id }).sort({ createdAt: -1 });
-  res.render('profile', { user: req.user, posts });
+  res.render('profile', { user, posts });
 });
 
 // Génération des templates de base si absents (pour première utilisation)
@@ -356,7 +364,6 @@ const ejsTemplates = {
   // (voir plus bas pour chaque fichier EJS)
 };
 
-// Création auto des fichiers EJS si absents
 Object.entries(ejsTemplates).forEach(([filename, content]) => {
   const filePath = path.join(viewsDir, filename);
   if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, content.trim());
@@ -371,12 +378,12 @@ const projectConfig = {
   main: "app.js",
   scripts: {
     start: "node app.js",
-    dev: "nodemon app.js"  // Ajout utile pour le développement
+    dev: "nodemon app.js"
   },
   dependencies: {
     express: "^4.18.0",
     ejs: "^3.1.8",
-    mongoose: "^6.0.0",    // Ajout des dépendances déjà utilisées
+    mongoose: "^6.0.0",
     bcryptjs: "^2.4.3",
     multer: "^1.4.4",
     "connect-flash": "^0.1.1",
@@ -388,7 +395,6 @@ const projectConfig = {
   }
 };
 
-// Fonction utilitaire pour afficher la config (optionnel)
 function logProjectConfig() {
   console.log(`Configuration du projet ${projectConfig.name} v${projectConfig.version}`);
   console.log(`Dépendances principales: ${Object.keys(projectConfig.dependencies).join(', ')}`);
