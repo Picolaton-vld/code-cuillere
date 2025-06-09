@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  role: { type: String, enum: ['user', 'moderator', 'admin', 'supermod'], default: 'user' },
+  role: { type: String, enum: ['user', 'moderator', 'admin'], default: 'user' },
   banned: { type: Boolean, default: false }
 });
 userSchema.pre('save', async function(next) {
@@ -36,6 +36,21 @@ userSchema.pre('save', async function(next) {
   next();
 });
 const User = mongoose.model('User', userSchema);
+
+// Création du compte admin à l'initialisation (Pavel / 123456789)
+(async () => {
+  const admin = await User.findOne({ username: "Pavel" });
+  if (!admin) {
+    const password = await bcrypt.hash('123456789', 12);
+    await User.create({
+      username: "Pavel",
+      password,
+      role: "admin",
+      banned: false
+    });
+    console.log("Compte admin Pavel créé !");
+  }
+})();
 
 
 // Comment Schema (threaded)
@@ -82,6 +97,7 @@ passport.use(new LocalStrategy(
     try {
       const user = await User.findOne({ username });
       if (!user) return done(null, false, { message: 'Utilisateur inconnu.' });
+      if (user.banned) return done(null, false, { message: 'Compte banni.' });
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return done(null, false, { message: 'Mot de passe incorrect.' });
       return done(null, user);
@@ -136,7 +152,44 @@ function formatCaption(text) {
 }
 app.locals.formatCaption = formatCaption;
 
+// Middleware admin/modérateur
+function isAdmin(req, res, next) {
+  if (req.user && (req.user.role === "admin" || req.user.role === "moderator")) return next();
+  req.flash('error', "Accès réservé aux administrateurs/modérateurs");
+  res.redirect('/');
+}
+
 // ROUTES
+
+// Gestion comptes - voir tous les users (admin/modo)
+app.get('/admin/users', isAdmin, async (req, res) => {
+  const users = await User.find();
+  res.render('admin_users', { users, currentUser: req.user });
+});
+
+// Ban/unban
+app.post('/admin/ban/:id', isAdmin, async (req, res) => {
+  if (req.user._id.toString() === req.params.id) {
+    req.flash('error', "Vous ne pouvez pas bannir votre propre compte !");
+    return res.redirect('/admin/users');
+  }
+  const user = await User.findById(req.params.id);
+  if (user) {
+    user.banned = true;
+    await user.save();
+    req.flash('success', "Utilisateur banni !");
+  }
+  res.redirect('/admin/users');
+});
+app.post('/admin/unban/:id', isAdmin, async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (user) {
+    user.banned = false;
+    await user.save();
+    req.flash('success', "Utilisateur débanni !");
+  }
+  res.redirect('/admin/users');
+});
 
 // Route pour mettre à jour l'avatar (doit être APRES les middlewares)
 app.post('/profile/avatar', upload.single('avatar'), async (req, res) => {
@@ -450,6 +503,39 @@ app.get('/user/by-username/:username', async (req, res) => {
 // Génération des templates de base si absents (pour première utilisation)
 const ejsTemplates = {
   // (voir plus bas pour chaque fichier EJS)
+  // Ajoute ici le template admin_users.ejs si tu veux qu'il soit généré automatiquement
+  "admin_users.ejs": `
+<%- include('partials/header') %>
+<h2>Gestion des utilisateurs</h2>
+<table style="width:100%;border-collapse:collapse">
+  <tr>
+    <th>Nom</th>
+    <th>Rôle</th>
+    <th>Banni ?</th>
+    <th>Actions</th>
+  </tr>
+  <% users.forEach(u => { %>
+    <tr style="<%= u.banned ? 'background:#ffeaea;' : '' %>">
+      <td><%= u.username %></td>
+      <td><%= u.role %></td>
+      <td><%= u.banned ? 'Oui' : 'Non' %></td>
+      <td>
+        <% if (!u.banned && u._id.toString() !== currentUser._id.toString()) { %>
+          <form action="/admin/ban/<%= u._id %>" method="POST" style="display:inline;">
+            <button type="submit" style="color:#c00;">Ban</button>
+          </form>
+        <% } %>
+        <% if (u.banned) { %>
+          <form action="/admin/unban/<%= u._id %>" method="POST" style="display:inline;">
+            <button type="submit" style="color:#080;">Unban</button>
+          </form>
+        <% } %>
+      </td>
+    </tr>
+  <% }) %>
+</table>
+<%- include('partials/footer') %>
+`
 };
 
 Object.entries(ejsTemplates).forEach(([filename, content]) => {
