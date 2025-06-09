@@ -105,6 +105,17 @@ app.set('views', path.join(__dirname, 'views'));
 const viewsDir = path.join(__dirname, 'views');
 if (!fs.existsSync(viewsDir)) fs.mkdirSync(viewsDir);
 
+// Fonction utilitaire pour transformer hashtags et mentions en liens cliquables
+function formatCaption(text) {
+  if (!text) return '';
+  // Hashtags
+  text = text.replace(/#([a-zA-Z0-9_]+)/g, '<a href="/hashtag/$1" class="hashtag">#$1</a>');
+  // Mentions
+  text = text.replace(/@([a-zA-Z0-9_]+)/g, '<a href="/user/by-username/$1" class="mention">@$1</a>');
+  return text;
+}
+app.locals.formatCaption = formatCaption;
+
 // ROUTES
 
 // Route pour mettre à jour l'avatar (doit être APRES les middlewares)
@@ -378,6 +389,23 @@ app.get('/profile', async (req, res) => {
   const user = await User.findById(req.user._id).populate('followers').populate('following');
   const posts = await Post.find({ userId: req.user._id }).sort({ createdAt: -1 });
   res.render('profile', { user, posts });
+});
+
+// Page d’un hashtag
+app.get('/hashtag/:tag', async (req, res) => {
+  const tag = req.params.tag;
+  // On cherche les posts contenant ce hashtag
+  const regex = new RegExp(`#${tag}(\\b|\\W)`, "i");
+  const posts = await Post.find({ caption: { $regex: regex } }).populate('userId').sort({ createdAt: -1 });
+  res.render('hashtag', { tag, posts });
+});
+
+// Accès au profil via @username
+app.get('/user/by-username/:username', async (req, res) => {
+  const user = await User.findOne({ username: req.params.username }).populate('followers').populate('following');
+  if (!user) return res.redirect('/');
+  const posts = await Post.find({ userId: user._id }).sort({ createdAt: -1 });
+  res.render('user', { user, posts, currentUser: req.user });
 });
 
 // Génération des templates de base si absents (pour première utilisation)
