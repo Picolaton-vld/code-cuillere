@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<main class="container">
+  <h2>Modifier l’album</h2>
+  <form action="/album/<%= album._id %>/edit" method="POST" style="display:flex;flex-direction:column;gap:14px;max-width:340px;">
+    <label>Titre
+      <input type="text" name="title" value="<%= album.title %>" required>
+    </label>
+    <label>Description
+      <input type="text" name="description" value="<%= album.description %>">
+    </label>
+    <button type="submit" style="background:#3897f0;color:white;font-weight:bold;border:none;padding:10px;border-radius:4px;">Enregistrer</button>
+  </form>
+  <a href="/albums" style="display:inline-block;margin-top:18px;">Annuler</a>
+</main>
+<%- include('partials/footer') %>
