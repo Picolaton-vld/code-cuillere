@@ -17,24 +17,46 @@
       <% } %>
     </div>
     <% if (post.images && post.images.length > 0) { %>
-  <% post.images.forEach(function(img) { %>
-    <img src="<%= img %>" alt="Photo de cuillère" class="post-image-fullwidth" style="max-width:300px;display:block;margin-bottom:8px;">
-  <% }); %>
-<% } %>
+      <% post.images.forEach(function(img) { %>
+        <img src="<%= img %>" alt="Photo de cuillère" class="post-image-fullwidth" style="max-width:300px;display:block;margin-bottom:8px;">
+      <% }); %>
+    <% } %>
     <div class="post-caption">
       <strong><%= post.userId.username %></strong> <%= post.caption %>
     </div>
+
     <div class="comments">
       <h3>Commentaires</h3>
-      <% post.comments.forEach(comment => { %>
-        <div class="comment">
-          <span class="comment-user"><%= comment.userId ? comment.userId.username : "[Utilisateur supprimé]" %></span>
-          <span class="comment-text"><%= comment.text %></span>
-        </div>
-      <% }); %>
+      <% function renderComments(comments, parentId, level) { %>
+        <% comments.filter(c => String(c.parentId) === String(parentId)).forEach(c => { %>
+          <div style="margin-left:<%= level*32 %>px; border-left:1.5px solid #eee; padding-left:14px; margin-top:10px;">
+            <strong>
+              <a href="/user/<%= c.userId && c.userId._id ? c.userId._id : '#' %>">
+                <%= c.userId && c.userId.username ? c.userId.username : "[Utilisateur]" %>
+              </a>
+            </strong>
+            <span style="color:#bbb; font-size:0.9em;">
+              <%= c.createdAt ? new Date(c.createdAt).toLocaleString() : "" %>
+            </span><br>
+            <%= c.text %>
+            <!-- Bouton répondre (affiche le formulaire) -->
+            <% if (currentUser) { %>
+              <a href="#" onclick="event.preventDefault();document.getElementById('reply-<%= c._id %>').style.display='block';">Répondre</a>
+              <form id="reply-<%= c._id %>" action="/comment/<%= post._id %>" method="POST" style="display:none; margin-top:8px;">
+                <input type="hidden" name="parentId" value="<%= c._id %>">
+                <input type="text" name="comment" placeholder="Votre réponse..." required style="width:70%;">
+                <button type="submit" style="padding:3px 12px;">Envoyer</button>
+              </form>
+            <% } %>
+            <% renderComments(comments, c._id, level+1); %>
+          </div>
+        <% }) %>
+      <% } %>
+      <% renderComments(post.comments, null, 0); %>
     </div>
+
     <% if (currentUser) { %>
-      <form class="comment-form" action="/comment/<%= post._id %>" method="POST">
+      <form class="comment-form" action="/comment/<%= post._id %>" method="POST" style="margin-top:18px;">
         <input type="text" name="comment" placeholder="Ajouter un commentaire..." required>
         <button type="submit">Publier</button>
       </form>
