@@ -338,9 +338,30 @@ app.post('/comment/:id', async (req, res) => {
   res.redirect(`/post/${post._id}`);
 });
 
-// Carte des cuillères (amélioration possible)
+// Carte avec filtres
 app.get('/map', async (req, res) => {
-  const posts = await Post.find({ 'location.name': { $exists: true, $ne: "" } }).populate('userId');
+  let { user, lieu, minlikes } = req.query;
+  let query = { 'location.name': { $exists: true, $ne: "" } };
+
+  if (user) {
+    const users = await User.find({ username: { $regex: user, $options: 'i' } });
+    if (users.length > 0) query.userId = { $in: users.map(u => u._id) };
+    else query.userId = null; // aucun résultat
+  }
+  if (lieu) {
+    query['location.name'] = { $regex: lieu, $options: 'i' };
+  }
+  if (minlikes) {
+    // Filtrage par nombre de likes (en JS après récupération)
+    let posts = await Post.find(query).populate('userId');
+    posts = posts.filter(p => (p.likes?.length || 0) >= parseInt(minlikes));
+    return res.render('map', {
+      posts: JSON.stringify(posts),
+      mapboxToken: process.env.MAPBOX_TOKEN || 'your-mapbox-token'
+    });
+  }
+
+  let posts = await Post.find(query).populate('userId');
   res.render('map', {
     posts: JSON.stringify(posts),
     mapboxToken: process.env.MAPBOX_TOKEN || 'your-mapbox-token'
@@ -394,7 +415,39 @@ const projectConfig = {
     "connect-mongo": "^4.6.0"
   }
 };
+// Recherche globale (barre de recherche)
+app.get('/search', async (req, res) => {
+  const q = req.query.q || "";
+  let posts = [];
+  const hashtagRegex = /#(\w+)/g;
+  let hashtags = [];
+  let query = {};
 
+  // Recherche par hashtag
+  if (q.match(hashtagRegex)) {
+    hashtags = [...q.matchAll(hashtagRegex)].map(m => m[1].toLowerCase());
+    query.caption = { $regex: hashtags.map(h => `#${h}`).join('|'), $options: 'i' };
+  } else if (q.startsWith("@")) {
+    // Recherche par nom d'utilisateur (ex: @toto)
+    const username = q.replace(/^@/, '');
+    const user = await User.findOne({ username: new RegExp("^" + username + "$", "i") });
+    if (user) query.userId = user._id;
+    else query = { _id: null }; // Aucun résultat si user inconnu
+  } else if (q) {
+    // Recherche générale : lieu, légende, pseudo
+    query.$or = [
+      { caption: { $regex: q, $options: 'i' } },
+      { "location.name": { $regex: q, $options: 'i' } }
+    ];
+    // Ajout recherche par pseudo
+    const users = await User.find({ username: { $regex: q, $options: 'i' } });
+    if (users.length > 0) query.$or.push({ userId: { $in: users.map(u => u._id) } });
+  }
+
+  posts = await Post.find(query).populate('userId').sort({ createdAt: -1 });
+
+  res.render('search', { posts, q });
+});
 function logProjectConfig() {
   console.log(`Configuration du projet ${projectConfig.name} v${projectConfig.version}`);
   console.log(`Dépendances principales: ${Object.keys(projectConfig.dependencies).join(', ')}`);
