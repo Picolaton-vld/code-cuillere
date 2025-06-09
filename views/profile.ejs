@@ -58,43 +58,40 @@
 .profile-post-link:hover {
   color: #c2185b;
 }
-.profile-post-actions {
+.profile-post-actions-under {
   display: flex;
-  gap: 9px;
-  margin: 10px 0 2px 0;
   align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 12px 0 0 0;
 }
-.profile-post-actions .like-btn {
-  background: transparent;
+.profile-post-actions-under .like-btn {
+  background: none;
   border: none;
-  font-size: 1.15em;
+  font-size: 1.3em;
   cursor: pointer;
-  padding: 0 6px;
+  vertical-align: middle;
 }
-
-.profile-post-actions .btn-edit, .profile-post-actions .btn-delete {
-  padding: 6px 11px;
-  border-radius: 18px;
-  border: none;
-  font-size: 1em;
-  cursor: pointer;
-  margin-right: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+.profile-post-actions-under .btn-edit,
+.profile-post-actions-under .btn-delete {
   background: #e3f2fd;
+  border: none;
+  border-radius: 50%;
+  padding: 6px;
+  font-size: 1.12em;
   color: #1976d2;
-  transition: background .18s, color .18s;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
-.profile-post-actions .btn-delete {
+.profile-post-actions-under .btn-delete {
   background: #ffebee;
   color: #c62828;
 }
-.profile-post-actions .btn-edit:hover {
+.profile-post-actions-under .btn-edit:hover {
   background: #bbdefb;
   color: #1565c0;
 }
-.profile-post-actions .btn-delete:hover {
+.profile-post-actions-under .btn-delete:hover {
   background: #ffcdd2;
   color: #fff;
 }
@@ -168,6 +165,28 @@
 .carousel-next:hover {
   background: rgba(98,0,238,0.4);
 }
+/* Statistiques */
+.stats-panel {
+  margin-top: 32px;
+  margin-bottom: 32px;
+  background: #f7f3fd;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px #0001;
+  padding: 24px 18px;
+  max-width: 700px;
+}
+.stats-panel h3 { margin-bottom: 18px; }
+.stats-keyfigures {
+  display: flex;
+  gap: 30px;
+  font-size: 1.12em;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.stats-keyfigures span {
+  min-width: 120px;
+  color: #6d38a8;
+}
 </style>
 
 <main class="container">
@@ -192,6 +211,26 @@
     <input type="file" name="avatar" accept="image/*" required>
     <button type="submit">Mettre à jour l'avatar</button>
   </form>
+
+  <!-- Bloc Statistiques -->
+  <div class="stats-panel">
+    <h3>Statistiques</h3>
+    <div class="stats-keyfigures">
+      <span>Total vues : <strong>
+        <%= posts.reduce((acc, post) => acc + (post.views || 0), 0) %>
+      </strong></span>
+      <span>Total likes : <strong>
+        <%= posts.reduce((acc, post) => acc + (post.likes ? post.likes.length : 0), 0) %>
+      </strong></span>
+      <span>Moyenne vues/post : <strong>
+        <%= posts.length ? Math.round(posts.reduce((acc, post) => acc + (post.views || 0), 0) / posts.length) : 0 %>
+      </strong></span>
+      <span>Moyenne likes/post : <strong>
+        <%= posts.length ? Math.round(posts.reduce((acc, post) => acc + (post.likes ? post.likes.length : 0), 0) / posts.length) : 0 %>
+      </strong></span>
+    </div>
+    <canvas id="activityChart" width="400" height="180"></canvas>
+  </div>
 
   <div class="profile-posts-grid">
     <% function renderComments(comments, parentId, level, postId) { %>
@@ -228,17 +267,18 @@
           <span><%= post.caption %></span>
         </div>
         <a href="/post/<%= post._id %>" class="profile-post-link">Voir le post</a>
-        <!-- Actions -->
-        <div class="profile-post-actions">
+        <!-- Actions SOUS le bouton "Voir le post" : likes, vues, edit, delete -->
+        <div class="profile-post-actions-under">
           <form action="/like/<%= post._id %>" method="POST" style="display:inline;">
             <button type="submit" class="like-btn">
               <%= post.likes && post.likes.some(function(like) { return like.equals(user._id); }) ? "💖" : "🤍" %>
             </button>
           </form>
           <span><%= post.likes.length %> likes</span>
-          <a href="/post/<%= post._id %>/edit" class="btn btn-edit"><i class="fas fa-edit"></i></a>
+          <span style="color:#888;font-size:.95em;"><%= post.views || 0 %> vues</span>
+          <a href="/post/<%= post._id %>/edit" class="btn btn-edit" title="Modifier"><i class="fas fa-edit"></i></a>
           <form action="/post/<%= post._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ce post ?');">
-            <button type="submit" class="btn btn-delete"><i class="fas fa-trash"></i></button>
+            <button type="submit" class="btn btn-delete" title="Supprimer"><i class="fas fa-trash"></i></button>
           </form>
         </div>
         <!-- Commentaires Threadés -->
@@ -260,4 +300,45 @@
 <script>
 function nextSlide(postId) {
   const carousel = document.querySelector('.carousel[data-post="'+postId+'"]');
-  const images = carousel.query
+  const images = carousel.querySelectorAll('.carousel-image');
+  let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+  images[current].classList.remove('active');
+  let next = (current + 1) % images.length;
+  images[next].classList.add('active');
+}
+function prevSlide(postId) {
+  const carousel = document.querySelector('.carousel[data-post="'+postId+'"]');
+  const images = carousel.querySelectorAll('.carousel-image');
+  let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+  images[current].classList.remove('active');
+  let prev = (current - 1 + images.length) % images.length;
+  images[prev].classList.add('active');
+}
+
+// Courbe activité Chart.js (posts et likes par mois)
+<% if (typeof statsByMonth !== "undefined" && typeof likesByMonth !== "undefined") { %>
+  document.addEventListener('DOMContentLoaded', function() {
+    const dataPosts = <%- JSON.stringify(statsByMonth) %>;
+    const dataLikes = <%- JSON.stringify(likesByMonth) %>;
+    const labels = Object.keys({...dataPosts, ...dataLikes}).sort();
+    const posts = labels.map(m => dataPosts[m] || 0);
+    const likes = labels.map(m => dataLikes[m] || 0);
+    const ctx = document.getElementById('activityChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: "Posts/mois", data: posts, borderColor: "#6d38a8", fill: false },
+          { label: "Likes reçus/mois", data: likes, borderColor: "#ff6b6b", fill: false }
+        ]
+      },
+      options: {
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  });
+<% } %>
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
