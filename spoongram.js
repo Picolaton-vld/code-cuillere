@@ -509,6 +509,44 @@ app.post('/album/:id/remove-post', async (req, res) => {
   await album.save();
   res.redirect('/album/' + album._id);
 });
+// SUPPRIMER un album
+app.post('/album/:id/delete', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const album = await Album.findById(req.params.id);
+  if (!album || !album.userId.equals(req.user._id)) {
+    req.flash('error', "Vous n'avez pas le droit de supprimer cet album.");
+    return res.redirect('/albums');
+  }
+  await Album.deleteOne({ _id: req.params.id });
+  req.flash('success', "Album supprimé !");
+  res.redirect('/albums');
+});
+
+// MODIFIER un album - formulaire d'édition
+app.get('/album/:id/edit', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const album = await Album.findById(req.params.id);
+  if (!album || !album.userId.equals(req.user._id)) {
+    req.flash('error', "Vous n'avez pas le droit de modifier cet album.");
+    return res.redirect('/albums');
+  }
+  res.render('edit_album', { album });
+});
+
+// MODIFIER un album - traitement du formulaire
+app.post('/album/:id/edit', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const album = await Album.findById(req.params.id);
+  if (!album || !album.userId.equals(req.user._id)) {
+    req.flash('error', "Vous n'avez pas le droit de modifier cet album.");
+    return res.redirect('/albums');
+  }
+  album.title = req.body.title;
+  album.description = req.body.description;
+  await album.save();
+  req.flash('success', "Album modifié !");
+  res.redirect('/album/' + album._id);
+});
 
 // Recherche globale (barre de recherche)
 app.get('/search', async (req, res) => {
