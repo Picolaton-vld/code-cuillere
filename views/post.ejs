@@ -25,6 +25,26 @@
       <strong><%= post.userId.username %></strong> <%= post.caption %>
     </div>
 
+    <!-- Bouton de partage réseaux sociaux -->
+    <div class="share-buttons" style="margin: 1em 0;">
+      <span>Partager&nbsp;:</span>
+      <!-- Facebook -->
+      <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur Facebook">
+        <img src="/images/facebook.svg" alt="Facebook" style="width:24px;">
+      </a>
+      <!-- Twitter/X -->
+      <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>&text=Découvrez ce post sur SpoonGram !" target="_blank" rel="noopener" title="Partager sur Twitter">
+        <img src="/images/twitter.svg" alt="Twitter" style="width:24px;">
+      </a>
+      <!-- WhatsApp -->
+      <a href="https://wa.me/?text=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur WhatsApp">
+        <img src="/images/whatsapp.svg" alt="WhatsApp" style="width:24px;">
+      </a>
+      <!-- Copier le lien -->
+      <button onclick="navigator.clipboard.writeText('<%= request.protocol + '://' + request.get('host') + '/post/' + post._id %>');alert('Lien copié !')">Copier le lien</button>
+    </div>
+    <!-- /Bouton de partage réseaux sociaux -->
+
     <div class="comments">
       <h3>Commentaires</h3>
       <% function renderComments(comments, parentId, level) { %>
@@ -63,4 +83,3 @@
     <% } %>
   </div>
 </main>
-<%- include('partials/footer') %>
