@@ -1,41 +1,69 @@
 <%- include('partials/header') %>
-<main class="container">
-  <h2><%= album.title %></h2>
-  <p><%= album.description %></p>
-  <h3>Posts dans cet album</h3>
-  <div class="posts" style="display:flex;flex-direction:column;gap:24px;">
-    <% if (album.posts.length === 0) { %>
-      <p>Aucun post dans cet album.</p>
-    <% } %>
-    <% album.posts.forEach(post => { %>
-      <div style="display:flex;align-items:flex-start;">
-        <div style="background:white;border-radius:20px 0 0 20px;box-shadow:0 2px 8px #0001;padding:0;margin:0;overflow:hidden;width:170px;min-width:170px;max-width:170px;height:220px;display:flex;align-items:center;justify-content:center;">
-          <img src="<%= post.images[0] %>" alt="Photo" style="max-width:100%;max-height:100%;display:block;">
-        </div>
-        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;margin-left:0;">
-          <a href="/post/<%= post._id %>" style="margin-left:18px;font-weight:bold;text-decoration:underline;color:rebeccapurple;
-            overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;max-width:calc(100% - 90px);"
-            title="<%= post.caption %>">
-            <%= post.caption %>
-          </a>
-          <form action="/album/<%= album._id %>/remove-post" method="POST" style="display:inline;margin-left:auto;">
-            <input type="hidden" name="postId" value="<%= post._id %>">
-            <button type="submit">Retirer</button>
-          </form>
-        </div>
-      </div>
-    <% }) %>
-  </div>
-  <%- include('partials/header') %>
+<style>
+  /* Boutons stylés */
+  .album-actions {
+    margin-bottom: 20px;
+  }
+  .btn-edit, .btn-delete {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 5px;
+    border: none;
+    font-weight: 600;
+    font-size: 1em;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: background .18s, color .18s, box-shadow .18s;
+    box-shadow: 0 1px 4px #0001;
+    text-decoration: none;
+  }
+  .btn-edit {
+    background: #ffe082;
+    color: #674700;
+    border: 1px solid #e8c85a;
+  }
+  .btn-edit:hover {
+    background: #ffe9b3;
+    color: #7e5800;
+  }
+  .btn-delete {
+    background: #ffb3b3;
+    color: #a30000;
+    border: 1px solid #e88a8a;
+  }
+  .btn-delete:hover {
+    background: #ff6f6f;
+    color: #fff;
+  }
+
+  /* Texte du post coupé avec ellipse, joli style */
+  .album-post-caption {
+    margin-left: 18px;
+    font-weight: bold;
+    color: #6d38a8;
+    text-decoration: underline;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: calc(100% - 90px);
+    font-size: 1.08em;
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 2px #fff4;
+    transition: color .2s;
+  }
+  .album-post-caption:hover {
+    color: #9c27b0;
+  }
+</style>
 <main class="container">
   <h2><%= album.title %></h2>
   <p><%= album.description %></p>
 
-  <!-- BOUTONS MODIFIER/SUPPRIMER -->
-  <div style="margin-bottom:16px;">
-    <a href="/album/<%= album._id %>/edit" style="margin-right:10px;" class="btn btn-edit">Modifier</a>
+  <div class="album-actions">
+    <a href="/album/<%= album._id %>/edit" class="btn-edit">✏️ Modifier</a>
     <form action="/album/<%= album._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer cet album ?');">
-      <button type="submit" class="btn btn-delete">Supprimer</button>
+      <button type="submit" class="btn-delete">🗑️ Supprimer</button>
     </form>
   </div>
 
@@ -50,14 +78,14 @@
           <img src="<%= post.images[0] %>" alt="Photo" style="max-width:100%;max-height:100%;display:block;">
         </div>
         <div style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;margin-left:0;">
-          <a href="/post/<%= post._id %>" style="margin-left:18px;font-weight:bold;text-decoration:underline;color:rebeccapurple;
-            overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;max-width:calc(100% - 90px);"
-            title="<%= post.caption %>">
+          <a href="/post/<%= post._id %>" class="album-post-caption" title="<%= post.caption %>">
             <%= post.caption %>
           </a>
           <form action="/album/<%= album._id %>/remove-post" method="POST" style="display:inline;margin-left:auto;">
             <input type="hidden" name="postId" value="<%= post._id %>">
-            <button type="submit">Retirer</button>
+            <button type="submit" style="padding:5px 12px;border-radius:4px;border:1px solid #d2b6e6;background:#f5ebfa;color:#6d38a8;cursor:pointer;font-weight:500;font-size:.98em;transition:background .15s;">
+              Retirer
+            </button>
           </form>
         </div>
       </div>
@@ -71,7 +99,7 @@
         <option value="<%= post._id %>"><%= post.caption %></option>
       <% }) %>
     </select>
-    <button type="submit">Ajouter</button>
+    <button type="submit" style="padding:6px 16px;border-radius:4px;border:1px solid #bbb;background:#e1eaff;color:#2e3b7c;cursor:pointer;font-weight:500;font-size:.97em;">Ajouter</button>
   </form>
 </main>
 <%- include('partials/footer') %>
