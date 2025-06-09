@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+<main class="container">
+  <h2>Mes albums</h2>
+  <form action="/albums/new" method="POST" style="display:flex;gap:8px;margin-bottom:16px;">
+    <input type="text" name="title" placeholder="Titre de l’album" required>
+    <input type="text" name="description" placeholder="Description (optionnel)">
+    <button type="submit">Créer l’album</button>
+  </form>
+  <ul>
+    <% albums.forEach(album => { %>
+      <li>
+        <a href="/album/<%= album._id %>"><strong><%= album.title %></strong></a>
+        <em><%= album.description %></em> — <%= album.posts.length %> posts
+      </li>
+    <% }) %>
+  </ul>
+</main>
+<%- include('partials/footer') %>
