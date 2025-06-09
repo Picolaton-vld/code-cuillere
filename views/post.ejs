@@ -25,7 +25,7 @@
       <strong><%= post.userId.username %></strong> <%= post.caption %>
     </div>
 
-    <!-- Bouton de partage réseaux sociaux -->
+  <!-- Boutons de partage jolis et bien alignés -->
 <style>
   .share-buttons {
     display: flex;
@@ -50,7 +50,7 @@
     font-size: 1em;
     text-decoration: none;
     transition: background 0.15s;
-    color: #1877f2; /* Facebook bleu */
+    color: #1877f2;
   }
   .share-buttons a img {
     width: 24px;
@@ -60,6 +60,8 @@
   }
   .share-buttons a[title~="Twitter"] { color: #1da1f2; }
   .share-buttons a[title~="WhatsApp"] { color: #25d366; }
+  .share-buttons a[title~="Instagram"] { color: #C13584; }
+  .share-buttons a[title~="Snapchat"] { color: #FFFC00; }
   .share-buttons button {
     color: #333;
     border: 1px solid #ccc;
@@ -98,40 +100,31 @@
 </style>
 <div class="share-buttons">
   <span>Partager&nbsp;:</span>
+  <!-- Facebook -->
   <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur Facebook">
     <img src="/images/facebook.svg" alt="Facebook"/>Facebook
   </a>
+  <!-- Twitter/X -->
   <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>&text=Découvrez ce post sur SpoonGram !" target="_blank" rel="noopener" title="Partager sur Twitter">
     <img src="/images/twitter.svg" alt="Twitter"/>Twitter
   </a>
+  <!-- WhatsApp -->
   <a href="https://wa.me/?text=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur WhatsApp">
     <img src="/images/whatsapp.svg" alt="WhatsApp"/>WhatsApp
   </a>
+  <!-- Instagram (pas d'API direct, ouvre le site) -->
+  <a href="https://www.instagram.com/" target="_blank" rel="noopener" title="Partager sur Instagram">
+    <img src="/images/instagram.svg" alt="Instagram"/>Instagram
+  </a>
+  <!-- Snapchat -->
+  <a href="https://www.snapchat.com/scan?attachmentUrl=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur Snapchat">
+    <img src="/images/snapchat.svg" alt="Snapchat"/>Snapchat
+  </a>
+  <!-- Copier le lien -->
   <button onclick="navigator.clipboard.writeText('<%= request.protocol + '://' + request.get('host') + '/post/' + post._id %>');this.innerText='Copié!';setTimeout(()=>this.innerText='Copier le lien',1000)">Copier le lien</button>
+  <!-- QR code -->
   <a href="/post/<%= post._id %>/qrcode" target="_blank" class="qr-btn">Partager localisation</a>
 </div>
-    <div class="share-buttons" style="margin: 1em 0;">
-      <span>Partager&nbsp;:</span>
-      <!-- Facebook -->
-      <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur Facebook">
-        <img src="/images/facebook.svg" alt="Facebook" style="width:24px;">
-      </a>
-      <!-- Twitter/X -->
-      <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>&text=Découvrez ce post sur SpoonGram !" target="_blank" rel="noopener" title="Partager sur Twitter">
-        <img src="/images/twitter.svg" alt="Twitter" style="width:24px;">
-      </a>
-      <!-- WhatsApp -->
-      <a href="https://wa.me/?text=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur WhatsApp">
-        <img src="/images/whatsapp.svg" alt="WhatsApp" style="width:24px;">
-      </a>
-      <!-- Copier le lien -->
-      <button onclick="navigator.clipboard.writeText('<%= request.protocol + '://' + request.get('host') + '/post/' + post._id %>');alert('Lien copié !')">Copier le lien</button>
-    </div>
-<!-- Boutons de partage réseaux sociaux ici -->
-
-<!-- QR code partage localisation -->
-<a href="/post/<%= post._id %>/qrcode" target="_blank" class="btn btn-secondary">Partager la localisation (QR code)</a>
-
     <div class="comments">
       <h3>Commentaires</h3>
       <% function renderComments(comments, parentId, level) { %>
