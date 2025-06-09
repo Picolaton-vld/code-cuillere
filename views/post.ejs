@@ -58,7 +58,7 @@
     margin-right: 0.25em;
     vertical-align: middle;
   }
-  .share-buttons a[title~="Twitter"] { color: #1da1f2; }
+  .share-buttons a[title~="X"] { color: #1da1f2; }
   .share-buttons a[title~="WhatsApp"] { color: #25d366; }
   .share-buttons a[title~="Instagram"] { color: #C13584; }
   .share-buttons a[title~="Snapchat"] { color: #FFFC00; }
@@ -104,9 +104,9 @@
   <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur Facebook">
     <img src="/images/facebook.svg" alt="Facebook"/>Facebook
   </a>
-  <!-- Twitter/X -->
-  <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>&text=Découvrez ce post sur SpoonGram !" target="_blank" rel="noopener" title="Partager sur Twitter">
-    <img src="/images/twitter.svg" alt="Twitter"/>Twitter
+  <!-- X -->
+  <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>&text=Découvrez ce post sur SpoonGram !" target="_blank" rel="noopener" title="Partager sur X">
+    <img src="/images/X.svg" alt="X"/>X
   </a>
   <!-- WhatsApp -->
   <a href="https://wa.me/?text=<%= encodeURIComponent(request.protocol + '://' + request.get('host') + '/post/' + post._id) %>" target="_blank" rel="noopener" title="Partager sur WhatsApp">
