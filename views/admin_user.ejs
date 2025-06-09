@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<h2>Gestion des utilisateurs</h2>
+<table style="width:100%;border-collapse:collapse">
+  <tr>
+    <th>Nom</th>
+    <th>Rôle</th>
+    <th>Banni ?</th>
+    <th>Actions</th>
+  </tr>
+  <% users.forEach(u => { %>
+    <tr style="<%= u.banned ? 'background:#ffeaea;' : '' %>">
+      <td><%= u.username %></td>
+      <td><%= u.role %></td>
+      <td><%= u.banned ? 'Oui' : 'Non' %></td>
+      <td>
+        <% if (!u.banned && u._id.toString() !== currentUser._id.toString()) { %>
+          <form action="/admin/ban/<%= u._id %>" method="POST" style="display:inline;">
+            <button type="submit" style="color:#c00;">Ban</button>
+          </form>
+        <% } %>
+        <% if (u.banned) { %>
+          <form action="/admin/unban/<%= u._id %>" method="POST" style="display:inline;">
+            <button type="submit" style="color:#080;">Unban</button>
+          </form>
+        <% } %>
+      </td>
+    </tr>
+  <% }) %>
+</table>
+<%- include('partials/footer') %>
