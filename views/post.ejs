@@ -43,7 +43,10 @@
       <!-- Copier le lien -->
       <button onclick="navigator.clipboard.writeText('<%= request.protocol + '://' + request.get('host') + '/post/' + post._id %>');alert('Lien copié !')">Copier le lien</button>
     </div>
-    <!-- /Bouton de partage réseaux sociaux -->
+<!-- Boutons de partage réseaux sociaux ici -->
+
+<!-- QR code partage localisation -->
+<a href="/post/<%= post._id %>/qrcode" target="_blank" class="btn btn-secondary">Partager la localisation (QR code)</a>
 
     <div class="comments">
       <h3>Commentaires</h3>
