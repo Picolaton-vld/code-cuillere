@@ -276,8 +276,12 @@ app.get('/post/:id', async (req, res) => {
     req.flash('error', 'Post non trouvé');
     return res.redirect('/');
   }
+  // Incrémenter le compteur de vues
+  post.views = (post.views || 0) + 1;
+  await post.save();
   res.render('post', { post });
 });
+
 
 // Edition d'un post (formulaire)
 app.get('/post/:id/edit', async (req, res) => {
