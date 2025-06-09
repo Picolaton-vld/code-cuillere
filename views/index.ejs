@@ -1,5 +1,12 @@
 <%- include('partials/header') %>
 <main class="container">
+
+  <!-- BARRE DE RECHERCHE -->
+  <form action="/search" method="GET" class="search-bar" style="display:flex;gap:8px;margin-bottom:20px;">
+    <input type="text" name="q" placeholder="Rechercher (lieu, pseudo, #hashtag, légende...)" style="flex:1;padding:8px;">
+    <button type="submit"><i class="fas fa-search"></i> Rechercher</button>
+  </form>
+
   <% if (success && success.length > 0) { %>
     <div class="alert success"><%= success %></div>
   <% } %>
