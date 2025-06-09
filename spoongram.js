@@ -410,10 +410,21 @@ app.get('/profile', async (req, res) => {
     req.flash('error', 'Veuillez vous connecter');
     return res.redirect('/login');
   }
-  // On peuple followers et following !
   const user = await User.findById(req.user._id).populate('followers').populate('following');
   const posts = await Post.find({ userId: req.user._id }).sort({ createdAt: -1 }).populate('comments.userId');
-  res.render('profile', { user, posts });
+
+  // Statistiques pour courbe activité
+  const now = new Date();
+  let statsByMonth = {};
+  let likesByMonth = {};
+  posts.forEach(post => {
+    const d = new Date(post.createdAt);
+    const month = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0');
+    statsByMonth[month] = (statsByMonth[month] || 0) + 1;
+    likesByMonth[month] = (likesByMonth[month] || 0) + (post.likes ? post.likes.length : 0);
+  });
+
+  res.render('profile', { user, posts, statsByMonth, likesByMonth });
 });
 
 // Page d’un hashtag
