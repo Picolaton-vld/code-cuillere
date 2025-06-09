@@ -3,16 +3,22 @@
   <h2><%= album.title %></h2>
   <p><%= album.description %></p>
   <h3>Posts dans cet album</h3>
-  <div class="posts">
+  <div class="posts" style="display:flex;flex-direction:column;gap:24px;">
     <% if (album.posts.length === 0) { %>
       <p>Aucun post dans cet album.</p>
     <% } %>
     <% album.posts.forEach(post => { %>
-      <div class="card post">
-        <img src="<%= post.images[0] %>" alt="Photo" style="max-width:150px;">
-        <div>
-          <strong><a href="/post/<%= post._id %>"><%= post.caption %></a></strong>
-          <form action="/album/<%= album._id %>/remove-post" method="POST" style="display:inline;">
+      <div style="display:flex;align-items:flex-start;">
+        <div style="background:white;border-radius:20px 0 0 20px;box-shadow:0 2px 8px #0001;padding:0;margin:0;overflow:hidden;width:170px;min-width:170px;max-width:170px;height:220px;display:flex;align-items:center;justify-content:center;">
+          <img src="<%= post.images[0] %>" alt="Photo" style="max-width:100%;max-height:100%;display:block;">
+        </div>
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;margin-left:0;">
+          <a href="/post/<%= post._id %>" style="margin-left:18px;font-weight:bold;text-decoration:underline;color:rebeccapurple;
+            overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;max-width:calc(100% - 90px);"
+            title="<%= post.caption %>">
+            <%= post.caption %>
+          </a>
+          <form action="/album/<%= album._id %>/remove-post" method="POST" style="display:inline;margin-left:auto;">
             <input type="hidden" name="postId" value="<%= post._id %>">
             <button type="submit">Retirer</button>
           </form>
@@ -21,7 +27,7 @@
     <% }) %>
   </div>
   <h3>Ajouter un post existant</h3>
-  <form action="/album/<%= album._id %>/add-post" method="POST">
+  <form action="/album/<%= album._id %>/add-post" method="POST" style="margin-bottom:36px;">
     <select name="postId" required>
       <% userPosts.forEach(function(post) { %>
         <option value="<%= post._id %>"><%= post.caption %></option>
