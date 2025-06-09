@@ -335,7 +335,7 @@ app.get('/post/:id', async (req, res) => {
   // Incrémenter le compteur de vues
   post.views = (post.views || 0) + 1;
   await post.save();
-  res.render('post', { post });
+  res.render('post', { post, currentUser: req.user, request: req });
 });
 
 
@@ -667,6 +667,19 @@ app.get('/search', async (req, res) => {
   posts = await Post.find(query).populate('userId').sort({ createdAt: -1 });
 
   res.render('search', { posts, q });
+});
+const QRCode = require('qrcode');
+
+// Route pour générer un QR code de la localisation d’un post
+app.get('/post/:id/qrcode', async (req, res) => {
+  const post = await Post.findById(req.params.id);
+  if (!post || !post.location || !post.location.coordinates) return res.status(404).send('Post ou localisation introuvable');
+  const loc = post.location;
+  const mapUrl = `https://www.google.com/maps/search/?api=1&query=${loc.coordinates.lat},${loc.coordinates.lng}`;
+  QRCode.toDataURL(mapUrl, { width: 300 }, (err, url) => {
+    if (err) return res.status(500).send('Erreur QR code');
+    res.type('html').send(`<img src="${url}" alt="QR code localisation"><br><a href="${mapUrl}" target="_blank">Voir sur Google Maps</a>`);
+  });
 });
 
 function logProjectConfig() {
