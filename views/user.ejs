@@ -1,49 +1,63 @@
 <%- include('partials/header') %>
 <style>
-  .post-actions-bottom-right {
-    position: absolute;
-    right: 18px;
-    bottom: 18px;
-    display: flex;
-    gap: 10px;
-    z-index: 2;
-  }
-  .btn-post-edit, .btn-post-delete {
-    padding: 7px 16px;
-    border-radius: 22px;
-    font-weight: 600;
-    font-size: 1em;
-    border: none;
-    cursor: pointer;
-    transition: background .18s, color .18s, box-shadow .18s;
-    box-shadow: 0 1px 4px #0001;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .btn-post-edit {
-    background: #e3f2fd;
-    color: #1976d2;
-    border: 1px solid #90caf9;
-  }
-  .btn-post-edit:hover {
-    background: #bbdefb;
-    color: #1565c0;
-  }
-  .btn-post-delete {
-    background: #ffebee;
-    color: #c62828;
-    border: 1px solid #ef9a9a;
-  }
-  .btn-post-delete:hover {
-    background: #ffcdd2;
-    color: #fff;
-  }
-  .post-card {
-    position: relative;
-    padding-bottom: 50px; /* espace pour les boutons */
-  }
+.user-posts-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  margin-top: 32px;
+}
+.user-post-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px #0001, 0 0 0 1px #ececec;
+  max-width: 270px;
+  min-width: 220px;
+  padding: 0 0 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.18s;
+}
+.user-post-card:hover {
+  box-shadow: 0 4px 32px #0002, 0 0 0 2px #d1c4e9;
+}
+.user-post-img {
+  width: 100%;
+  border-radius: 18px 18px 0 0;
+  object-fit: cover;
+  max-height: 220px;
+  min-height: 140px;
+  background: #fafafa;
+  margin-bottom: 12px;
+}
+.user-post-caption {
+  font-size: 1em;
+  padding: 0 12px;
+  margin-bottom: 6px;
+  color: #222;
+  width: 100%;
+  text-align: left;
+}
+.user-post-caption strong {
+  color: #6d38a8;
+}
+.user-post-link {
+  color: #6d38a8;
+  text-decoration: underline;
+  font-size: .97em;
+  font-weight: 500;
+  transition: color .16s;
+  margin-bottom: 8px;
+}
+.user-post-link:hover {
+  color: #c2185b;
+}
+.btn-follow {
+  background: #2d87f0; color: #fff; padding: 6px 14px; border-radius: 4px; border:none; cursor:pointer;
+}
+.btn-unfollow {
+  background: #ccc; color: #333; padding: 6px 14px; border-radius: 4px; border:none; cursor:pointer;
+}
 </style>
 <main class="container">
   <div class="profile-header">
@@ -69,41 +83,32 @@
         %>
         <% if (isFollowing) { %>
           <form action="/unfollow/<%= user._id %>" method="POST" style="display:inline;">
-            <button type="submit" class="btn btn-unfollow">Se désabonner</button>
+            <button type="submit" class="btn-unfollow">Se désabonner</button>
           </form>
         <% } else { %>
           <form action="/follow/<%= user._id %>" method="POST" style="display:inline;">
-            <button type="submit" class="btn btn-follow">S’abonner</button>
+            <button type="submit" class="btn-follow">S’abonner</button>
           </form>
         <% } %>
       <% } %>
     </div>
   </div>
-  <div class="profile-posts">
+  <div class="user-posts-grid">
     <% if (posts.length === 0) { %>
       <p>Aucune publication pour le moment.</p>
     <% } %>
     <% posts.forEach(function(post) { %>
-      <div class="post-card">
+      <div class="user-post-card">
         <% if (post.images && post.images[0]) { %>
-          <img src="<%= post.images[0] %>" style="max-width:200px;">
+          <img src="<%= post.images[0] %>" class="user-post-img" alt="Photo">
         <% } %>
-        <div>
+        <div class="user-post-caption">
           <strong><%= user.username %></strong>
           <span><%= post.caption %></span>
         </div>
-        <a href="/post/<%= post._id %>">Voir le post</a>
+        <a href="/post/<%= post._id %>" class="user-post-link">Voir le post</a>
       </div>
     <% }); %>
   </div>
 </main>
 <%- include('partials/footer') %>
-
-<style>
-.btn-follow {
-  background: #2d87f0; color: #fff; padding: 6px 14px; border-radius: 4px; border:none; cursor:pointer;
-}
-.btn-unfollow {
-  background: #ccc; color: #333; padding: 6px 14px; border-radius: 4px; border:none; cursor:pointer;
-}
-</style>
