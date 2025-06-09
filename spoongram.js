@@ -55,7 +55,15 @@ const Post = mongoose.model('Post', new mongoose.Schema({
   }],
   createdAt: { type: Date, default: Date.now }
 }));
-
+// Album Schema/Model
+const albumSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  title: { type: String, required: true },
+  description: { type: String },
+  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
+  createdAt: { type: Date, default: Date.now }
+});
+const Album = mongoose.model('Album', albumSchema);
 // Passport config
 passport.use(new LocalStrategy(
   async (username, password, done) => {
@@ -442,7 +450,66 @@ const projectConfig = {
     "express-session": "^1.17.2",
     "connect-mongo": "^4.6.0"
   }
-};
+};// Créer un nouvel album
+app.post('/albums/new', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    req.flash('error', 'Veuillez vous connecter');
+    return res.redirect('/login');
+  }
+  const { title, description } = req.body;
+  const album = new Album({ userId: req.user._id, title, description });
+  await album.save();
+  req.flash('success', 'Album créé !');
+  res.redirect('/albums');
+});
+
+// Afficher tous les albums de l’utilisateur connecté
+app.get('/albums', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const albums = await Album.find({ userId: req.user._id }).sort({ createdAt: -1 });
+  res.render('albums', { albums });
+});
+
+// Page d'un album avec ses posts
+app.get('/album/:id', async (req, res) => {
+  const album = await Album.findById(req.params.id).populate({
+    path: 'posts',
+    populate: { path: 'userId' }
+  });
+  if (!album) return res.redirect('/albums');
+  if (!req.user || !album.userId.equals(req.user._id)) {
+    req.flash('error', "Vous n'avez pas accès à cet album.");
+    return res.redirect('/albums');
+  }
+  // Récupère les posts de l'utilisateur non déjà dans cet album pour l'ajout
+  const userPosts = await Post.find({ userId: req.user._id, _id: { $nin: album.posts } });
+  res.render('album', { album, userPosts });
+});
+
+// Ajouter un post à un album
+app.post('/album/:id/add-post', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const album = await Album.findById(req.params.id);
+  if (!album || !album.userId.equals(req.user._id)) return res.redirect('/albums');
+  const { postId } = req.body;
+  if (!album.posts.includes(postId)) {
+    album.posts.push(postId);
+    await album.save();
+  }
+  res.redirect('/album/' + album._id);
+});
+
+// Retirer un post d'un album
+app.post('/album/:id/remove-post', async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/login');
+  const album = await Album.findById(req.params.id);
+  if (!album || !album.userId.equals(req.user._id)) return res.redirect('/albums');
+  const { postId } = req.body;
+  album.posts = album.posts.filter(p => p.toString() !== postId);
+  await album.save();
+  res.redirect('/album/' + album._id);
+});
+
 // Recherche globale (barre de recherche)
 app.get('/search', async (req, res) => {
   const q = req.query.q || "";
