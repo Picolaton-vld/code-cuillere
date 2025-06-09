@@ -95,7 +95,7 @@
 
   <div class="s">
     <% posts.forEach((post, idx) => { %>
-      <div class="card post">
+      <div class="card post post-card">
         <div class="post-header">
           <img src="<%= post.userId.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" class="avatar">
           <span class="username">
@@ -104,14 +104,7 @@
           <% if (post.location && post.location.name) { %>
             <span class="location"><i class="fas fa-map-marker-alt"></i> <%= post.location.name %></span>
           <% } %>
-          <% if (currentUser && post.userId._id.toString() === currentUser._id.toString()) { %>
-            <span class="post-actions-btns">
-              <a href="/post/<%= post._id %>/edit" class="btn btn-edit"><i class="fas fa-edit"></i> Modifier</a>
-              <form action="/post/<%= post._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce post ?');">
-                <button type="submit" class="btn btn-delete"><i class="fas fa-trash"></i></button>
-              </form>
-            </span>
-          <% } %>
+          <!-- On supprime le bloc boutons ici -->
         </div>
 
         <!-- CARROUSEL D'IMAGES -->
@@ -142,12 +135,24 @@
         </div>
         <div class="post-caption">
          <strong>
-  <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
-</strong>
-<span>
-  <%- formatCaption(post.caption) %>
-</span>
+            <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
+         </strong>
+         <span>
+            <%- formatCaption(post.caption) %>
+         </span>
         </div>
+        <% if (currentUser && post.userId._id.toString() === currentUser._id.toString()) { %>
+          <div class="post-actions-bottom-right">
+            <a href="/post/<%= post._id %>/edit" class="btn-post-edit">
+              <span style="font-size:1.1em;">✏️</span> Modifier
+            </a>
+            <form action="/post/<%= post._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ce post&nbsp;?');">
+              <button type="submit" class="btn-post-delete">
+                <span style="font-size:1.15em;">🗑️</span> Supprimer
+              </button>
+            </form>
+          </div>
+        <% } %>
       </div>
     <% }); %>
   </div>
