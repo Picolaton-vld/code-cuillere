@@ -3,12 +3,12 @@
   <div class="card map-container">
     <h2>Carte des cuillères</h2>
     <!-- FORMULAIRE DE FILTRES -->
-<form action="/map" method="GET" class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px;">
-  <input type="text" name="user" placeholder="Filtrer par utilisateur" value="<%= typeof user !== 'undefined' ? user : '' %>">
-  <input type="text" name="lieu" placeholder="Filtrer par lieu" value="<%= typeof lieu !== 'undefined' ? lieu : '' %>">
-  <input type="number" name="minlikes" min="0" placeholder="Likes min" value="<%= typeof minlikes !== 'undefined' ? minlikes : '' %>">
-  <button type="submit"><i class="fas fa-filter"></i> Filtrer</button>
-  <button type="button" onclick="window.location.href='/map'" class="btn-reset-filters">Réinitialiser les filtres</button>
+<form action="/map" method="GET" class="filter-bar" style="margin-bottom:16px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+  <input type="text" name="user" placeholder="Filtrer par utilisateur" value="<%= typeof user !== 'undefined' ? user : '' %>" style="width:140px;max-width:40vw;">
+  <input type="text" name="lieu" placeholder="Filtrer par lieu" value="<%= typeof lieu !== 'undefined' ? lieu : '' %>" style="width:120px;max-width:35vw;">
+  <input type="number" name="minlikes" min="0" placeholder="Likes min" value="<%= typeof minlikes !== 'undefined' ? minlikes : '' %>" style="width:85px;max-width:20vw;">
+  <button type="submit" style="height:38px;padding:0 15px;"><i class="fas fa-filter"></i> Filtrer</button>
+  <button type="button" onclick="window.location.href='/map'" class="btn-reset-filters" style="height:38px;padding:0 15px;background:#f4f4f4;color:#333;border:1px solid #bbb;border-radius:4px;cursor:pointer;font-size:1em;margin-left:0;">Réinitialiser les filtres</button>
 </form>
 
     <p>Découvrez où les cuillères ont été trouvées dans le monde</p>
@@ -34,7 +34,13 @@
   height: 42px; /* pour matcher la hauteur des inputs */
   box-sizing: border-box;
 }
-
+.filter-bar input {
+  min-width: 0;
+  box-sizing: border-box;
+}
+.btn-reset-filters:hover {
+  background: #e0e0e0;
+}
 .btn-reset-filters:hover {
   background: #e0e0e0;
 }
