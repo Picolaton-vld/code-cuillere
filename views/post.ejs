@@ -25,42 +25,42 @@
       <strong><%= post.userId.username %></strong> <%= post.caption %>
     </div>
 
-  <!-- Boutons de partage jolis et bien alignés -->
-<style>
-  .share-buttons {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: .7em;
-    margin: 1.2em 0 .7em 0;
-  }
-  .share-buttons span {
-    font-weight: bold;
-    margin-right: 0.3em;
-  }
-  .share-buttons a,
-  .share-buttons button {
-    display: inline-flex;
-    align-items: center;
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: .15em .4em;
-    border-radius: 4px;
-    font-size: 1em;
-    text-decoration: none;
-    transition: background 0.15s;
-    color: #1877f2;
-  }
-  .share-buttons a img {
-    width: 24px;
-    height: 24px;
-    margin-right: 0.25em;
-    vertical-align: middle;
-  }
-  .share-buttons a[title~="X"] { color: #1da1f2; }
-  .share-buttons a[title~="WhatsApp"] { color: #25d366; }
-  .share-buttons a[title~="Instagram"] { color: #C13584; }
+    <!-- Boutons de partage jolis et bien alignés -->
+    <style>
+      .share-buttons {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .7em;
+        margin: 1.2em 0 .7em 0;
+      }
+      .share-buttons span {
+        font-weight: bold;
+        margin-right: 0.3em;
+      }
+      .share-buttons a,
+      .share-buttons button {
+        display: inline-flex;
+        align-items: center;
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: .15em .4em;
+        border-radius: 4px;
+        font-size: 1em;
+        text-decoration: none;
+        transition: background 0.15s;
+        color: #1877f2;
+      }
+      .share-buttons a img {
+        width: 24px;
+        height: 24px;
+        margin-right: 0.25em;
+        vertical-align: middle;
+      }
+      .share-buttons a[title~="X"], .share-buttons a[title~="Twitter"] { color: #1da1f2; }
+      .share-buttons a[title~="WhatsApp"] { color: #25d366; }
+      .share-buttons a[title~="Instagram"] { color: #C13584; }
   .share-buttons a[title~="Snapchat"] { color: #FFFC00; }
   .share-buttons button {
     color: #333;
