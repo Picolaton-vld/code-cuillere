@@ -3,12 +3,13 @@
   <div class="card map-container">
     <h2>Carte des cuillères</h2>
     <!-- FORMULAIRE DE FILTRES -->
-    <form action="/map" method="GET" class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px;">
-      <input type="text" name="user" placeholder="Filtrer par utilisateur" value="<%= typeof user !== 'undefined' ? user : '' %>">
-      <input type="text" name="lieu" placeholder="Filtrer par lieu" value="<%= typeof lieu !== 'undefined' ? lieu : '' %>">
-      <input type="number" name="minlikes" min="0" placeholder="Likes min" value="<%= typeof minlikes !== 'undefined' ? minlikes : '' %>">
-      <button type="submit"><i class="fas fa-filter"></i> Filtrer</button>
-    </form>
+<form action="/map" method="GET" class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px;">
+  <input type="text" name="user" placeholder="Filtrer par utilisateur" value="<%= typeof user !== 'undefined' ? user : '' %>">
+  <input type="text" name="lieu" placeholder="Filtrer par lieu" value="<%= typeof lieu !== 'undefined' ? lieu : '' %>">
+  <input type="number" name="minlikes" min="0" placeholder="Likes min" value="<%= typeof minlikes !== 'undefined' ? minlikes : '' %>">
+  <button type="submit"><i class="fas fa-filter"></i> Filtrer</button>
+  <a href="/map" class="btn" style="padding:8px 14px; background:#ccc; color:#333; border-radius:4px; text-decoration:none; display:inline-block;">Réinitialiser les filtres</a>
+</form>
     <p>Découvrez où les cuillères ont été trouvées dans le monde</p>
     <div id="map" style="height:400px; border-radius:8px; margin-bottom: 10px;"></div>
     <div id="no-marker-warning" style="display:none;color:#e74c3c;text-align:center;margin-top:15px;">
