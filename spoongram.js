@@ -26,7 +26,9 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String, default: '/images/default-avatar.jpg' },
   createdAt: { type: Date, default: Date.now },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  role: { type: String, enum: ['user', 'moderator', 'admin', 'supermod'], default: 'user' },
+  banned: { type: Boolean, default: false }
 });
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
@@ -34,6 +36,7 @@ userSchema.pre('save', async function(next) {
   next();
 });
 const User = mongoose.model('User', userSchema);
+
 
 // Comment Schema (threaded)
 const commentSchema = new mongoose.Schema({
