@@ -34,6 +34,12 @@
       <% }) %>
     </select>
     <button type="submit">Ajouter</button>
+<div style="margin-bottom:16px;">
+  <a href="/album/<%= album._id %>/edit" style="margin-right:10px;" class="btn btn-edit">Modifier</a>
+  <form action="/album/<%= album._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer cet album ?');">
+    <button type="submit" class="btn btn-delete">Supprimer</button>
+  </form>
+</div>
   </form>
 </main>
 <%- include('partials/footer') %>
