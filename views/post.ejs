@@ -101,11 +101,7 @@
   <button onclick="navigator.clipboard.writeText('<%= request.protocol + '://' + request.get('host') + '/post/' + post._id %>');this.innerText='Copié!';setTimeout(()=>this.innerText='Copier le lien',1000)">Copier le lien</button>
   <a href="/post/<%= post._id %>/qrcode" target="_blank" class="qr-btn">Partager localisation</a>
 </div>
-  <!-- Copier le lien -->
-  <button onclick="navigator.clipboard.writeText('<%= request.protocol + '://' + request.get('host') + '/post/' + post._id %>');this.innerText='Copié!';setTimeout(()=>this.innerText='Copier le lien',1000)">Copier le lien</button>
-  <!-- QR code -->
-  <a href="/post/<%= post._id %>/qrcode" target="_blank" class="qr-btn">Partager localisation</a>
-</div>
+
     <div class="comments">
       <h3>Commentaires</h3>
       <% function renderComments(comments, parentId, level) { %>
