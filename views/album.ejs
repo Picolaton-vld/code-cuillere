@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+<main class="container">
+  <h2><%= album.title %></h2>
+  <p><%= album.description %></p>
+  <h3>Posts dans cet album</h3>
+  <div class="posts">
+    <% if (album.posts.length === 0) { %>
+      <p>Aucun post dans cet album.</p>
+    <% } %>
+    <% album.posts.forEach(post => { %>
+      <div class="card post">
+        <img src="<%= post.images[0] %>" alt="Photo" style="max-width:150px;">
+        <div>
+          <strong><a href="/post/<%= post._id %>"><%= post.caption %></a></strong>
+          <form action="/album/<%= album._id %>/remove-post" method="POST" style="display:inline;">
+            <input type="hidden" name="postId" value="<%= post._id %>">
+            <button type="submit">Retirer</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+  <h3>Ajouter un post existant</h3>
+  <form action="/album/<%= album._id %>/add-post" method="POST">
+    <select name="postId" required>
+      <% userPosts.forEach(function(post) { %>
+        <option value="<%= post._id %>"><%= post.caption %></option>
+      <% }) %>
+    </select>
+    <button type="submit">Ajouter</button>
+  </form>
+</main>
+<%- include('partials/footer') %>
