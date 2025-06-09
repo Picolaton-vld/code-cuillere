@@ -16,7 +16,11 @@
         </span>
       <% } %>
     </div>
-    <img src="<%= post.image %>" alt="Photo de cuillère" class="post-image">
+    <% if (post.images && post.images.length > 0) { %>
+  <% post.images.forEach(function(img) { %>
+    <img src="<%= img %>" alt="Photo de cuillère" class="post-image-fullwidth" style="max-width:300px;display:block;margin-bottom:8px;">
+  <% }); %>
+<% } %>
     <div class="post-caption">
       <strong><%= post.userId.username %></strong> <%= post.caption %>
     </div>
