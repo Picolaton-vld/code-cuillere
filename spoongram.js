@@ -16,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI);
 mongoose.connection.on('connected', () => console.log('Connected to MongoDB'));
 
 // User Schema/Model
@@ -35,8 +35,17 @@ userSchema.pre('save', async function(next) {
 });
 const User = mongoose.model('User', userSchema);
 
+// Comment Schema (threaded)
+const commentSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  text: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  parentId: { type: mongoose.Schema.Types.ObjectId, default: null }
+});
+
 // Post Schema/Model
-const Post = mongoose.model('Post', new mongoose.Schema({
+const postSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   images: [{ type: String, required: true }],
   caption: { type: String, default: '' },
@@ -48,13 +57,11 @@ const Post = mongoose.model('Post', new mongoose.Schema({
     }
   },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  comments: [{
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    text: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
-  }],
+  comments: [commentSchema],
   createdAt: { type: Date, default: Date.now }
-}));
+});
+const Post = mongoose.model('Post', postSchema);
+
 // Album Schema/Model
 const albumSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -64,6 +71,7 @@ const albumSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const Album = mongoose.model('Album', albumSchema);
+
 // Passport config
 passport.use(new LocalStrategy(
   async (username, password, done) => {
@@ -260,7 +268,9 @@ app.post('/post', upload.array('images', 10), async (req, res) => {
 
 // Affichage d'un post
 app.get('/post/:id', async (req, res) => {
-  const post = await Post.findById(req.params.id).populate('userId').populate('comments.userId');
+  const post = await Post.findById(req.params.id)
+    .populate('userId')
+    .populate('comments.userId');
   if (!post) {
     req.flash('error', 'Post non trouvé');
     return res.redirect('/');
@@ -337,7 +347,7 @@ app.post('/like/:id', async (req, res) => {
   res.json({ likes: post.likes.length, liked: likeIndex === -1 });
 });
 
-// Commentaire
+// Commentaire enrichi (threadé)
 app.post('/comment/:id', async (req, res) => {
   if (!req.isAuthenticated()) {
     req.flash('error', 'Veuillez vous connecter');
@@ -348,9 +358,11 @@ app.post('/comment/:id', async (req, res) => {
     req.flash('error', 'Post non trouvé');
     return res.redirect('/');
   }
+  const parentId = req.body.parentId || null;
   post.comments.push({
     userId: req.user._id,
-    text: req.body.comment
+    text: req.body.comment,
+    parentId: parentId
   });
   await post.save();
   req.flash('success', 'Commentaire ajouté');
@@ -395,7 +407,7 @@ app.get('/profile', async (req, res) => {
   }
   // On peuple followers et following !
   const user = await User.findById(req.user._id).populate('followers').populate('following');
-  const posts = await Post.find({ userId: req.user._id }).sort({ createdAt: -1 });
+  const posts = await Post.find({ userId: req.user._id }).sort({ createdAt: -1 }).populate('comments.userId');
   res.render('profile', { user, posts });
 });
 
@@ -428,29 +440,8 @@ Object.entries(ejsTemplates).forEach(([filename, content]) => {
 ['public','public/uploads','public/images','views'].forEach(dir => {
   if (!fs.existsSync(path.join(__dirname, dir))) fs.mkdirSync(path.join(__dirname, dir), { recursive: true });
 });
-// Configuration du projet (remplace le pseudo-JSON)
-const projectConfig = {
-  name: "spoongram",
-  version: "1.0.0",
-  main: "app.js",
-  scripts: {
-    start: "node app.js",
-    dev: "nodemon app.js"
-  },
-  dependencies: {
-    express: "^4.18.0",
-    ejs: "^3.1.8",
-    mongoose: "^6.0.0",
-    bcryptjs: "^2.4.3",
-    multer: "^1.4.4",
-    "connect-flash": "^0.1.1",
-    passport: "^0.6.0",
-    "passport-local": "^1.0.0",
-    dotenv: "^16.0.0",
-    "express-session": "^1.17.2",
-    "connect-mongo": "^4.6.0"
-  }
-};// Créer un nouvel album
+
+// Albums
 app.post('/albums/new', async (req, res) => {
   if (!req.isAuthenticated()) {
     req.flash('error', 'Veuillez vous connecter');
@@ -463,14 +454,12 @@ app.post('/albums/new', async (req, res) => {
   res.redirect('/albums');
 });
 
-// Afficher tous les albums de l’utilisateur connecté
 app.get('/albums', async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect('/login');
   const albums = await Album.find({ userId: req.user._id }).sort({ createdAt: -1 });
   res.render('albums', { albums });
 });
 
-// Page d'un album avec ses posts
 app.get('/album/:id', async (req, res) => {
   const album = await Album.findById(req.params.id).populate({
     path: 'posts',
@@ -486,7 +475,6 @@ app.get('/album/:id', async (req, res) => {
   res.render('album', { album, userPosts });
 });
 
-// Ajouter un post à un album
 app.post('/album/:id/add-post', async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect('/login');
   const album = await Album.findById(req.params.id);
@@ -499,7 +487,6 @@ app.post('/album/:id/add-post', async (req, res) => {
   res.redirect('/album/' + album._id);
 });
 
-// Retirer un post d'un album
 app.post('/album/:id/remove-post', async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect('/login');
   const album = await Album.findById(req.params.id);
@@ -509,7 +496,6 @@ app.post('/album/:id/remove-post', async (req, res) => {
   await album.save();
   res.redirect('/album/' + album._id);
 });
-// SUPPRIMER un album
 app.post('/album/:id/delete', async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect('/login');
   const album = await Album.findById(req.params.id);
@@ -521,8 +507,6 @@ app.post('/album/:id/delete', async (req, res) => {
   req.flash('success', "Album supprimé !");
   res.redirect('/albums');
 });
-
-// MODIFIER un album - formulaire d'édition
 app.get('/album/:id/edit', async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect('/login');
   const album = await Album.findById(req.params.id);
@@ -532,8 +516,6 @@ app.get('/album/:id/edit', async (req, res) => {
   }
   res.render('edit_album', { album });
 });
-
-// MODIFIER un album - traitement du formulaire
 app.post('/album/:id/edit', async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect('/login');
   const album = await Album.findById(req.params.id);
@@ -581,7 +563,26 @@ app.get('/search', async (req, res) => {
 
   res.render('search', { posts, q });
 });
+
 function logProjectConfig() {
+  // (optionnel, pour debug)
+  const projectConfig = {
+    name: "spoongram",
+    version: "1.0.0",
+    dependencies: {
+      express: "^4.18.0",
+      ejs: "^3.1.8",
+      mongoose: "^6.0.0",
+      bcryptjs: "^2.4.3",
+      multer: "^1.4.4",
+      "connect-flash": "^0.1.1",
+      passport: "^0.6.0",
+      "passport-local": "^1.0.0",
+      dotenv: "^16.0.0",
+      "express-session": "^1.17.2",
+      "connect-mongo": "^4.6.0"
+    }
+  };
   console.log(`Configuration du projet ${projectConfig.name} v${projectConfig.version}`);
   console.log(`Dépendances principales: ${Object.keys(projectConfig.dependencies).join(', ')}`);
 }
