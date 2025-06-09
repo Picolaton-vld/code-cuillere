@@ -42,42 +42,40 @@
   .share-buttons button {
     display: inline-flex;
     align-items: center;
-    border: 1px solid #1877f2;
-    background: #fff;
+    border: none;
     cursor: pointer;
-    padding: .18em .7em;
+    padding: .18em .9em;
     border-radius: 4px;
     font-size: 1em;
     text-decoration: none;
-    transition: background 0.15s, color 0.15s, border 0.15s;
-    color: #1877f2;
     font-weight: 500;
+    color: #fff;
+    transition: background 0.15s, filter 0.15s;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.03);
   }
-  .share-buttons a[title~="X"] { color: #1da1f2; border-color: #1da1f2; }
-  .share-buttons a[title~="WhatsApp"] { color: #25d366; border-color: #25d366; }
-  .share-buttons a[title~="Instagram"] { color: #C13584; border-color: #C13584; }
-  .share-buttons a[title~="Snapchat"] { color: #FFFC00; border-color: #FFFC00; }
-  .share-buttons a[title~="Facebook"] { color: #1877f2; border-color: #1877f2; }
+  .share-buttons a[title~="Facebook"]        { background: #1877f2; }
+  .share-buttons a[title~="X"]               { background: #14171a; }
+  .share-buttons a[title~="WhatsApp"]        { background: #25d366; }
+  .share-buttons a[title~="Instagram"]       { background: linear-gradient(45deg, #fd5, #ff543e, #c837ab); }
+  .share-buttons a[title~="Snapchat"]        { background: #fffc00; color: #222; border: 1.5px solid #ffe900;}
+  .share-buttons a[title~="Snapchat"]:hover  { filter: brightness(0.95); }
+  .share-buttons a[title~="Instagram"]:hover { filter: brightness(0.98); }
   .share-buttons a:hover, .share-buttons button:hover {
-    background: #f0f5ff;
+    filter: brightness(0.93);
   }
   .share-buttons .qr-btn {
-    border: 1px solid #555;
+    background: #eee;
     color: #222;
-    background: #fff;
+    border: 1.5px solid #bbb;
     margin-left: .6em;
-    font-size: .96em;
   }
   .share-buttons .qr-btn:hover {
-    background: #f9f9f9;
-    color: #111;
+    background: #dedede;
   }
   .share-buttons button {
-    color: #333;
-    border: 1px solid #ccc;
-    background: #f8f8f8;
+    background: #555;
+    color: #fff;
     margin-left: .4em;
-    font-size: .98em;
   }
   @media (max-width: 600px) {
     .share-buttons {
