@@ -1,0 +1,35 @@
+<%- include('partials/header') %>
+<main class="container">
+  <form action="/search" method="GET" class="search-bar" style="display:flex;gap:8px;margin-bottom:20px;">
+    <input type="text" name="q" value="<%= q %>" placeholder="Rechercher (lieu, pseudo, #hashtag, légende...)" style="flex:1;padding:8px;">
+    <button type="submit"><i class="fas fa-search"></i> Rechercher</button>
+  </form>
+  <h2>Résultats pour "<%= q %>"</h2>
+  <div class="posts">
+    <% if (posts.length === 0) { %>
+      <p>Aucun résultat trouvé.</p>
+    <% } %>
+    <% posts.forEach(post => { %>
+      <div class="card post">
+        <div class="post-header">
+          <img src="<%= post.userId.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" class="avatar">
+          <span class="username">
+            <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
+          </span>
+          <% if (post.location && post.location.name) { %>
+            <span class="location"><i class="fas fa-map-marker-alt"></i> <%= post.location.name %></span>
+          <% } %>
+        </div>
+        <% if (post.images && post.images[0]) { %>
+          <img src="<%= post.images[0] %>" style="max-width:270px;">
+        <% } %>
+        <div class="post-caption">
+          <strong>
+            <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
+          </strong> <%= post.caption %>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</main>
+<%- include('partials/footer') %>
