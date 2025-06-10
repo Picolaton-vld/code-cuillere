@@ -10,13 +10,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => ({
-    let resource_type = 'image';
-    if (file.mimetype.startsWith('video/')) resource_type = 'video';
-    return {
-      folder: 'spoongram',
+    folder: 'spoongram',
     resource_type: file.mimetype.startsWith('video/') ? 'video' : 'image',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'mp4', 'webm', 'mov']
+    allowed_formats: ['jpg', 'jpeg', 'png', 'mp4', 'webm', 'mov', 'avi'],
   }),
 });
-
 module.exports = { cloudinary, storage };
