@@ -297,19 +297,21 @@ app.get('/logout', (req, res, next) => {
 });
 
 // Nouveau post
-app.post('/post', upload.array('images', 10), async (req, res) => {
+app.post('/post', upload.array('media', 10), async (req, res) => {
   if (!req.isAuthenticated()) {
     req.flash('error', 'Veuillez vous connecter');
     return res.redirect('/login');
   }
   if (!req.files || req.files.length === 0) {
-    req.flash('error', 'Veuillez sélectionner au moins une image');
+    req.flash('error', 'Veuillez sélectionner au moins une image ou vidéo');
     return res.redirect('/');
   }
-  const images = req.files.map(file => file.path);
+  const images = req.files.filter(f => f.mimetype.startsWith('image/')).map(file => file.path);
+  const videos = req.files.filter(f => f.mimetype.startsWith('video/')).map(file => file.path);
   const newPost = new Post({
     userId: req.user._id,
-    images: images,
+    images,
+    videos,
     caption: req.body.caption,
     location: {
       name: req.body.locationName,
@@ -320,7 +322,7 @@ app.post('/post', upload.array('images', 10), async (req, res) => {
     }
   });
   await newPost.save();
-  req.flash('success', 'Photo publiée avec succès !');
+  req.flash('success', 'Post publié avec succès !');
   res.redirect('/');
 });
 
