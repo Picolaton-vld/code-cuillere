@@ -307,7 +307,7 @@ app.post('/post', upload.array('media', 10), async (req, res) => {
     return res.redirect('/');
   }
   const images = req.files.filter(f => f.mimetype.startsWith('image/')).map(file => file.path);
-  const videos = req.files.filter(f => f.mimetype.startsWith('video/')).map(file => file.path);
+const videos = req.files.filter(f => f.mimetype.startsWith('video/')).map(file => file.path);
   const newPost = new Post({
     userId: req.user._id,
     images,
