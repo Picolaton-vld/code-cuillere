@@ -357,7 +357,7 @@ app.get('/post/:id/edit', async (req, res) => {
 });
 
 // Edition d'un post (soumission)
-app.post('/post/:id/edit', upload.array('images', 10), async (req, res) => {
+app.post('/post/:id/edit', upload.array('media', 10), async (req, res) => {
   const post = await Post.findById(req.params.id);
   if (!post) {
     req.flash('error', 'Post non trouvé');
@@ -371,11 +371,12 @@ app.post('/post/:id/edit', upload.array('images', 10), async (req, res) => {
   post.caption = req.body.caption;
   post.location.name = req.body.locationName;
 
-  // Si de nouvelles images sont uploadées, on remplace les anciennes
+  // Si de nouveaux fichiers sont uploadés, on remplace les anciens
   if (req.files && req.files.length > 0) {
-    post.images = req.files.map(file => '/uploads/' + file.filename);
+    post.images = req.files.filter(f => f.mimetype.startsWith('image/')).map(f => f.path);
+    post.videos = req.files.filter(f => f.mimetype.startsWith('video/')).map(f => f.path);
   }
-  // Sinon, on garde les images actuelles
+  // Sinon, on garde les médias actuels
 
   await post.save();
   req.flash('success', 'Post modifié !');
