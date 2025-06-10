@@ -44,6 +44,13 @@
     position: relative;
     padding-bottom: 50px; /* espace pour les boutons */
   }
+  .post-media {
+    max-width: 200px;
+    margin-bottom: 8px;
+    display: block;
+    border-radius: 8px;
+    background: #fafafa;
+  }
 </style>
 <main class="container">
   <h2>Flux de mes abonnements</h2>
@@ -59,8 +66,26 @@
           </strong>
           <span><%= post.caption %></span>
         </div>
-        <% if (post.images && post.images[0]) { %>
-          <img src="<%= post.images[0] %>" style="max-width:200px;">
+        <% 
+          const allMedia = [];
+          if (post.images && post.images.length > 0) {
+            post.images.forEach(img => { if (img) allMedia.push({type: 'image', src: img}); });
+          }
+          if (post.videos && post.videos.length > 0) {
+            post.videos.forEach(vid => { if (vid) allMedia.push({type: 'video', src: vid}); });
+          }
+        %>
+        <% if (allMedia.length > 0) { %>
+          <% allMedia.forEach(function(media, idx) { if(idx === 0) { %>
+            <% if (media.type === 'image') { %>
+              <img src="<%= media.src %>" class="post-media" alt="image du post">
+            <% } else if (media.type === 'video') { %>
+              <video controls class="post-media">
+                <source src="<%= media.src %>" type="video/mp4">
+                Votre navigateur ne supporte pas la vidéo.
+              </video>
+            <% } %>
+          <% } }); %>
         <% } %>
         <div>
           <span><%= post.likes.length %> likes</span>
