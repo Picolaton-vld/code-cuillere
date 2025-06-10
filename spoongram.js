@@ -66,6 +66,7 @@ const commentSchema = new mongoose.Schema({
 const postSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   images: [{ type: String, required: true }],
+  videos: [{ type: String }], // <--- ajoute cette ligne
   caption: { type: String, default: '' },
   location: {
     name: { type: String },
@@ -74,9 +75,9 @@ const postSchema = new mongoose.Schema({
       lng: { type: Number }
     }
   },
- likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   comments: [commentSchema],
-  views: { type: Number, default: 0 }, // NOUVEAU CHAMP !
+  views: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 const Post = mongoose.model('Post', postSchema);
