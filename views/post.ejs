@@ -16,20 +16,28 @@
         </span>
       <% } %>
     </div>
-<% if (post.images && post.images.length > 0) { %>
-  <% post.images.forEach(function(img) { %>
-    <img src="<%= img %>" alt="Photo de cuillère" class="post-image-fullwidth" style="max-width:300px;display:block;margin-bottom:8px;">
-  <% }); %>
-<% } %>
 
-<% if (post.videos && post.videos.length > 0) { %>
-  <% post.videos.forEach(function(video) { %>
-    <video controls style="max-width:300px;display:block;margin-bottom:8px;">
-      <source src="<%= video %>" type="video/mp4">
-      Votre navigateur ne supporte pas la vidéo.
-    </video>
-  <% }); %>
-<% } %>
+    <% // Affichage images et vidéos dans l'ordre d'arrivée (optionnel) %>
+    <%
+      const allMedia = [];
+      if (post.images && post.images.length > 0) {
+        post.images.forEach(img => { if (img) allMedia.push({type: 'image', src: img}); });
+      }
+      if (post.videos && post.videos.length > 0) {
+        post.videos.forEach(vid => { if (vid) allMedia.push({type: 'video', src: vid}); });
+      }
+    %>
+    <% allMedia.forEach(function(media) { %>
+      <% if (media.type === 'image') { %>
+        <img src="<%= media.src %>" alt="Photo de cuillère" class="post-image-fullwidth" style="max-width:300px;display:block;margin-bottom:8px;">
+      <% } else if (media.type === 'video') { %>
+        <video controls class="post-image-fullwidth" style="max-width:300px;display:block;margin-bottom:8px;">
+          <source src="<%= media.src %>" type="video/mp4">
+          Votre navigateur ne supporte pas la vidéo.
+        </video>
+      <% } %>
+    <% }); %>
+
     <div class="post-caption">
       <strong><%= post.userId.username %></strong> <%= post.caption %>
     </div>
