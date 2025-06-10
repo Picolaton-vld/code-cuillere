@@ -104,20 +104,34 @@
           <% if (post.location && post.location.name) { %>
             <span class="location"><i class="fas fa-map-marker-alt"></i> <%= post.location.name %></span>
           <% } %>
-          <!-- On supprime le bloc boutons ici -->
         </div>
 
-        <!-- CARROUSEL D'IMAGES -->
+        <!-- CARROUSEL D'IMAGES ET VIDEOS -->
         <div class="carousel-container" id="carousel-<%= idx %>">
-          <% let images = post.images && post.images.length ? post.images : [post.image]; %>
-          <% images.forEach((img, i) => { %>
-            <img src="<%= img %>" alt="Photo de cuillère" class="post-image-fullwidth carousel-image" style="display: <%= i===0 ? 'block' : 'none' %>;">
+          <%
+            const allMedia = [];
+            if (post.images && post.images.length) {
+              post.images.forEach(img => { if (img) allMedia.push({type: 'image', src: img}); });
+            }
+            if (post.videos && post.videos.length) {
+              post.videos.forEach(vid => { if (vid) allMedia.push({type: 'video', src: vid}); });
+            }
+          %>
+          <% allMedia.forEach((media, i) => { %>
+            <% if (media.type === 'image') { %>
+              <img src="<%= media.src %>" alt="Photo de cuillère" class="post-image-fullwidth carousel-image" style="display: <%= i===0 ? 'block' : 'none' %>;">
+            <% } else if (media.type === 'video') { %>
+              <video controls class="post-image-fullwidth carousel-image" style="display: <%= i===0 ? 'block' : 'none' %>;">
+                <source src="<%= media.src %>" type="video/mp4">
+                Votre navigateur ne supporte pas la vidéo.
+              </video>
+            <% } %>
           <% }); %>
-          <% if (images.length > 1) { %>
+          <% if (allMedia.length > 1) { %>
             <button class="carousel-btn prev" data-carousel="<%= idx %>">&#10094;</button>
             <button class="carousel-btn next" data-carousel="<%= idx %>">&#10095;</button>
             <div class="carousel-indicators">
-              <% images.forEach((img, i) => { %>
+              <% allMedia.forEach((media, i) => { %>
                 <span class="indicator<%= i===0 ? ' active' : '' %>" data-carousel="<%= idx %>" data-index="<%= i %>"></span>
               <% }); %>
             </div>
@@ -160,7 +174,6 @@
 <%- include('partials/footer') %>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
 <style>
-/* Pour les images dans le carrousel */
 .carousel-container {
   position: relative;
   width: 100%;
@@ -225,13 +238,20 @@
       !isNaN(post.location.coordinates.lng)
     ) {
       markerCount++;
-      const marker = L.marker([post.location.coordinates.lat, post.location.coordinates.lng]).addTo(map);
-      marker.bindPopup(
+      // Trouver la première image ou vidéo pour l'aperçu
+      let mediaTag = "";
+      if (post.images && post.images.length && post.images[0]) {
+        mediaTag = `<img src="${post.images[0]}" style="height:180px; display:block; margin:0 auto; object-fit:contain;">`;
+      } else if (post.videos && post.videos.length && post.videos[0]) {
+        mediaTag = `<video controls style="height:180px; display:block; margin:0 auto; object-fit:contain;"><source src="${post.videos[0]}" type="video/mp4"></video>`;
+      }
+      const popupHtml =
         '<b>' + post.userId.username + '</b><br>' +
         (post.location.name ? '<i>' + post.location.name + '</i><br>' : '') +
-        '<img src="' + (post.images && post.images.length ? post.images[0] : post.image) + '" style="height:180px; display:block; margin:0 auto; object-fit:contain;"><br>' +
-        (post.caption || "")
-      );
+        mediaTag + '<br>' +
+        (post.caption || "");
+      const marker = L.marker([post.location.coordinates.lat, post.location.coordinates.lng]).addTo(map);
+      marker.bindPopup(popupHtml);
     }
   });
   if (markerCount === 0) {
@@ -269,11 +289,11 @@
 
     // CAROUSEL LOGIC
     document.querySelectorAll('.carousel-container').forEach(function(container, idx) {
-      const images = container.querySelectorAll('.carousel-image');
+      const medias = container.querySelectorAll('.carousel-image');
       let current = 0;
 
-      const showImage = (n) => {
-        images.forEach((img, i) => img.style.display = (i === n ? 'block' : 'none'));
+      const showMedia = (n) => {
+        medias.forEach((el, i) => el.style.display = (i === n ? 'block' : 'none'));
         const indicators = container.querySelectorAll('.indicator');
         indicators.forEach((ind, i) => ind.classList.toggle('active', i === n));
       };
@@ -282,22 +302,22 @@
       const nextBtn = container.querySelector('.carousel-btn.next');
       if (prevBtn && nextBtn) {
         prevBtn.addEventListener('click', () => {
-          current = (current - 1 + images.length) % images.length;
-          showImage(current);
+          current = (current - 1 + medias.length) % medias.length;
+          showMedia(current);
         });
         nextBtn.addEventListener('click', () => {
-          current = (current + 1) % images.length;
-          showImage(current);
+          current = (current + 1) % medias.length;
+          showMedia(current);
         });
       }
       const indicators = container.querySelectorAll('.indicator');
       indicators.forEach((ind, i) => {
         ind.addEventListener('click', () => {
           current = i;
-          showImage(current);
+          showMedia(current);
         });
       });
-      showImage(0);
+      showMedia(0);
     });
   });
 </script>
