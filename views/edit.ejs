@@ -3,16 +3,30 @@
   <div class="card upload-form">
     <h2>Modifier votre post</h2>
 <form action="/post/<%= post._id %>/edit" method="POST" enctype="multipart/form-data">
-  <% if (post.images && post.images.length) { %>
-    <% post.images.forEach(function(img) { %>
-      <img src="<%= img %>" alt="Photo actuelle" class="post-image" style="max-width:200px;"><br>
-    <% }) %>
-  <% } else if (post.image) { %>
-    <img src="<%= post.image %>" alt="Photo actuelle" class="post-image" style="max-width:200px;"><br>
+  <% 
+    const allMedia = [];
+    if (post.images && post.images.length) {
+      post.images.forEach(img => { if (img) allMedia.push({type: 'image', src: img}); });
+    }
+    if (post.videos && post.videos.length) {
+      post.videos.forEach(vid => { if (vid) allMedia.push({type: 'video', src: vid}); });
+    }
+  %>
+  <% if (allMedia.length > 0) { %>
+    <% allMedia.forEach(function(media) { %>
+      <% if (media.type === 'image') { %>
+        <img src="<%= media.src %>" alt="Photo actuelle" class="post-image" style="max-width:200px; margin-bottom:8px;"><br>
+      <% } else if (media.type === 'video') { %>
+        <video controls class="post-image" style="max-width:200px; margin-bottom:8px;">
+          <source src="<%= media.src %>" type="video/mp4">
+          Votre navigateur ne supporte pas la vidéo.
+        </video><br>
+      <% } %>
+    <% }); %>
   <% } %>
   <input type="text" name="caption" value="<%= post.caption %>" required>
   <input type="text" name="locationName" value="<%= post.location ? post.location.name : '' %>" placeholder="Nom du lieu (optionnel)">
-  <input type="file" name="images" multiple>
+  <input type="file" name="media" accept="image/*,video/*" multiple>
   <button type="submit">Enregistrer les modifications</button>
 </form>
     <a href="/" class="btn">Annuler</a>
