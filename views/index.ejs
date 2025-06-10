@@ -64,8 +64,7 @@
       <h2>Partagez une nouvelle cuillère</h2>
       <!-- MULTIPLE FILES -->
       <form action="/post" method="POST" enctype="multipart/form-data">
-        <input type="file" name="images" accept="image/*" required multiple>
-        <input type="text" name="caption" placeholder="Description de votre cuillère..." required>
+<input type="file" name="media" accept="image/*,video/*" multiple required>        <input type="text" name="caption" placeholder="Description de votre cuillère..." required>
         <input type="text" name="locationName" placeholder="Nom du lieu (optionnel)">
         <div style="margin-bottom:10px;">
           <label>Choisissez l'endroit sur la carte (optionnel)&nbsp;:</label>
