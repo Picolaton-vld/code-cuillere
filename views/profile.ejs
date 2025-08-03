@@ -1,5 +1,67 @@
 <%- include('partials/header') %>
 <style>
+.profile-follow-panel {
+  background: #faf8ff;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px #0001;
+  padding: 18px 14px;
+  margin-bottom: 32px;
+  display: flex;
+  gap: 36px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.profile-follow-list {
+  min-width: 220px;
+  max-width: 340px;
+}
+.profile-follow-list h4 {
+  margin-bottom: 12px;
+  color: #6d38a8;
+  font-size: 1.08em;
+  letter-spacing: 0.5px;
+}
+.profile-follow-list ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.profile-follow-list li {
+  display: flex;
+  align-items: center;
+  background: #f2ecfa;
+  padding: 7px 9px;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px #0001;
+  transition: background .17s, box-shadow .15s;
+}
+.profile-follow-list li:hover {
+  background: #e3d9fa;
+  box-shadow: 0 2px 12px #b39ddb33;
+}
+.profile-follow-list img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 9px;
+  box-shadow: 0 1px 5px #0001;
+  object-fit: cover;
+  background: #fff;
+}
+.profile-follow-list .username {
+  font-weight: 500;
+  color: #312262;
+  text-decoration: none;
+  font-size: 1em;
+  transition: color .15s;
+}
+.profile-follow-list a.username:hover {
+  color: #ff6b6b;
+  text-decoration: underline;
+}
 .profile-lists ul {
   list-style: none;
   padding: 0;
@@ -242,42 +304,42 @@
     <canvas id="activityChart" width="400" height="180"></canvas>
   </div>
 
-  <div class="profile-lists" style="display: flex; gap: 32px; margin: 24px 0;">
-    <div>
-      <strong>Abonnés :</strong>
-      <% if (user.followers && user.followers.length > 0) { %>
-        <ul>
-          <% user.followers.forEach(f => { %>
-            <li>
-              <a href="/user/<%= f._id %>">
-                <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
-                <%= f.username %>
-              </a>
-            </li>
-          <% }) %>
-        </ul>
-      <% } else { %>
-        <span>Aucun abonné.</span>
-      <% } %>
-    </div>
-    <div>
-      <strong>Abonnements :</strong>
-      <% if (user.following && user.following.length > 0) { %>
-        <ul>
-          <% user.following.forEach(f => { %>
-            <li>
-              <a href="/user/<%= f._id %>">
-                <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
-                <%= f.username %>
-              </a>
-            </li>
-          <% }) %>
-        </ul>
-      <% } else { %>
-        <span>Aucun abonnement.</span>
-      <% } %>
-    </div>
+<div class="profile-follow-panel">
+  <div class="profile-follow-list">
+    <h4>Abonnés (<%= user.followers ? user.followers.length : 0 %>)</h4>
+    <% if (user.followers && user.followers.length > 0) { %>
+      <ul>
+        <% user.followers.forEach(f => { %>
+          <li>
+            <a href="/user/<%= f._id %>">
+              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar">
+            </a>
+            <a href="/user/<%= f._id %>" class="username"><%= f.username %></a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <span style="color:#999;">Aucun abonné.</span>
+    <% } %>
   </div>
+  <div class="profile-follow-list">
+    <h4>Abonnements (<%= user.following ? user.following.length : 0 %>)</h4>
+    <% if (user.following && user.following.length > 0) { %>
+      <ul>
+        <% user.following.forEach(f => { %>
+          <li>
+            <a href="/user/<%= f._id %>">
+              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar">
+            </a>
+            <a href="/user/<%= f._id %>" class="username"><%= f.username %></a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <span style="color:#999;">Aucun abonnement.</span>
+    <% } %>
+  </div>
+</div>
 
   <div class="profile-posts-grid">
     <% function renderComments(comments, parentId, level, postId) { %>
