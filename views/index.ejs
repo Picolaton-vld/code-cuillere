@@ -96,15 +96,32 @@
   <div class="s">
     <% posts.forEach((post, idx) => { %>
       <div class="card post post-card">
-        <div class="post-header">
-          <img src="<%= post.userId.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" class="avatar">
-          <span class="username">
-            <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
-          </span>
-          <% if (post.location && post.location.name) { %>
-            <span class="location"><i class="fas fa-map-marker-alt"></i> <%= post.location.name %></span>
-          <% } %>
-        </div>
+<div class="post-header">
+  <img src="<%= post.userId.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" class="avatar">
+  <span class="username">
+    <a href="/user/<%= post.userId._id %>"><%= post.userId.username %></a>
+    <% if (currentUser && currentUser._id.toString() !== post.userId._id.toString()) { %>
+      <% 
+        const isFollowing = post.userId.followers.some(f =>
+          (f._id ? f._id.toString() : f.toString()) === currentUser._id.toString()
+        );
+      %>
+      <% if (isFollowing) { %>
+        <form action="/unfollow/<%= post.userId._id %>" method="POST" style="display:inline;">
+          <button type="submit" class="btn-unfollow">Se désabonner</button>
+        </form>
+      <% } else { %>
+        <form action="/follow/<%= post.userId._id %>" method="POST" style="display:inline;">
+          <button type="submit" class="btn-follow">S’abonner</button>
+        </form>
+      <% } %>
+    <% } %>
+  </span>
+  <% if (post.location && post.location.name) { %>
+    <span class="location"><i class="fas fa-map-marker-alt"></i> <%= post.location.name %></span>
+  <% } %>
+</div>
+
 
         <!-- CARROUSEL D'IMAGES ET VIDEOS -->
         <div class="carousel-container" id="carousel-<%= idx %>">
