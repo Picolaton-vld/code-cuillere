@@ -223,24 +223,60 @@
     <button type="submit">Mettre à jour l'avatar</button>
   </form>
 
-  <!-- Bloc Statistiques -->
+  <!-- Bloc Statistiques amélioré -->
   <div class="stats-panel">
     <h3>Statistiques</h3>
-    <div class="stats-keyfigures">
-      <span>Total vues : <strong>
-        <%= posts.reduce((acc, post) => acc + (post.views || 0), 0) %>
-      </strong></span>
-      <span>Total likes : <strong>
-        <%= posts.reduce((acc, post) => acc + (post.likes ? post.likes.length : 0), 0) %>
-      </strong></span>
-      <span>Moyenne vues/post : <strong>
-        <%= posts.length ? Math.round(posts.reduce((acc, post) => acc + (post.views || 0), 0) / posts.length) : 0 %>
-      </strong></span>
-      <span>Moyenne likes/post : <strong>
-        <%= posts.length ? Math.round(posts.reduce((acc, post) => acc + (post.likes ? post.likes.length : 0), 0) / posts.length) : 0 %>
-      </strong></span>
+    <div style="margin-bottom:14px;">
+      <label for="stats-period">Période :</label>
+      <select id="stats-period" onchange="updateStats()">
+        <option value="all">Total</option>
+        <option value="day">Aujourd'hui</option>
+        <option value="week">Cette semaine</option>
+        <option value="month">Ce mois-ci</option>
+        <option value="year">Cette année</option>
+      </select>
+    </div>
+    <div class="stats-keyfigures" id="stats-keyfigures">
+      <!-- Stats dynamiques JS -->
     </div>
     <canvas id="activityChart" width="400" height="180"></canvas>
+  </div>
+
+  <div class="profile-lists" style="display: flex; gap: 32px; margin: 24px 0;">
+    <div>
+      <strong>Abonnés :</strong>
+      <% if (user.followers && user.followers.length > 0) { %>
+        <ul>
+          <% user.followers.forEach(f => { %>
+            <li>
+              <a href="/user/<%= f._id %>">
+                <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
+                <%= f.username %>
+              </a>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <span>Aucun abonné.</span>
+      <% } %>
+    </div>
+    <div>
+      <strong>Abonnements :</strong>
+      <% if (user.following && user.following.length > 0) { %>
+        <ul>
+          <% user.following.forEach(f => { %>
+            <li>
+              <a href="/user/<%= f._id %>">
+                <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
+                <%= f.username %>
+              </a>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <span>Aucun abonnement.</span>
+      <% } %>
+    </div>
   </div>
 
   <div class="profile-posts-grid">
@@ -308,6 +344,7 @@
 </main>
 <%- include('partials/footer') %>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 function nextSlide(postId) {
   const carousel = document.querySelector('.carousel[data-post="'+postId+'"]');
@@ -326,22 +363,67 @@ function prevSlide(postId) {
   images[prev].classList.add('active');
 }
 
-// Courbe activité Chart.js (posts et likes par mois)
-<% if (typeof statsByMonth !== "undefined" && typeof likesByMonth !== "undefined") { %>
-  document.addEventListener('DOMContentLoaded', function() {
+// Statistiques dynamiques (vues/likes/avg) selon période
+const posts = <%- JSON.stringify(posts) %>;
+function getPeriodDates(period) {
+  const now = new Date();
+  if (period === "day") {
+    return { start: new Date(now.getFullYear(), now.getMonth(), now.getDate()), end: now };
+  }
+  if (period === "week") {
+    const start = new Date(now);
+    start.setDate(now.getDate() - now.getDay());
+    return { start, end: now };
+  }
+  if (period === "month") {
+    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: now };
+  }
+  if (period === "year") {
+    return { start: new Date(now.getFullYear(), 0, 1), end: now };
+  }
+  // "all"
+  return { start: null, end: null };
+}
+function updateStats() {
+  const period = document.getElementById("stats-period").value;
+  const { start, end } = getPeriodDates(period);
+  let filteredPosts = posts;
+  if (start && end) {
+    filteredPosts = posts.filter(p => {
+      const d = new Date(p.createdAt);
+      return d >= start && d <= end;
+    });
+  }
+  const totalViews = filteredPosts.reduce((acc, post) => acc + (post.views || 0), 0);
+  const totalLikes = filteredPosts.reduce((acc, post) => acc + (post.likes ? post.likes.length : 0), 0);
+  const avgViews = filteredPosts.length ? Math.round(totalViews / filteredPosts.length) : 0;
+  const avgLikes = filteredPosts.length ? Math.round(totalLikes / filteredPosts.length) : 0;
+
+  const keyfigures = `
+    <span>Total vues : <strong>${totalViews}</strong></span>
+    <span>Total likes : <strong>${totalLikes}</strong></span>
+    <span>Moyenne vues/post : <strong>${avgViews}</strong></span>
+    <span>Moyenne likes/post : <strong>${avgLikes}</strong></span>
+  `;
+  document.getElementById("stats-keyfigures").innerHTML = keyfigures;
+}
+document.addEventListener("DOMContentLoaded", () => {
+  updateStats();
+  // Courbe activité Chart.js (posts et likes par mois)
+  <% if (typeof statsByMonth !== "undefined" && typeof likesByMonth !== "undefined") { %>
     const dataPosts = <%- JSON.stringify(statsByMonth) %>;
     const dataLikes = <%- JSON.stringify(likesByMonth) %>;
     const labels = Object.keys({...dataPosts, ...dataLikes}).sort();
-    const posts = labels.map(m => dataPosts[m] || 0);
-    const likes = labels.map(m => dataLikes[m] || 0);
+    const postsData = labels.map(m => dataPosts[m] || 0);
+    const likesData = labels.map(m => dataLikes[m] || 0);
     const ctx = document.getElementById('activityChart').getContext('2d');
     new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [
-          { label: "Posts/mois", data: posts, borderColor: "#6d38a8", fill: false },
-          { label: "Likes reçus/mois", data: likes, borderColor: "#ff6b6b", fill: false }
+          { label: "Posts/mois", data: postsData, borderColor: "#6d38a8", fill: false },
+          { label: "Likes reçus/mois", data: likesData, borderColor: "#ff6b6b", fill: false }
         ]
       },
       options: {
@@ -349,43 +431,6 @@ function prevSlide(postId) {
         scales: { y: { beginAtZero: true } }
       }
     });
-  });
-<% } %>
-<div class="profile-lists" style="display: flex; gap: 32px; margin: 24px 0;">
-  <div>
-    <strong>Abonnés :</strong>
-    <% if (user.followers && user.followers.length > 0) { %>
-      <ul>
-        <% user.followers.forEach(f => { %>
-          <li>
-            <a href="/user/<%= f._id %>">
-              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
-              <%= f.username %>
-            </a>
-          </li>
-        <% }) %>
-      </ul>
-    <% } else { %>
-      <span>Aucun abonné.</span>
-    <% } %>
-  </div>
-  <div>
-    <strong>Abonnements :</strong>
-    <% if (user.following && user.following.length > 0) { %>
-      <ul>
-        <% user.following.forEach(f => { %>
-          <li>
-            <a href="/user/<%= f._id %>">
-              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
-              <%= f.username %>
-            </a>
-          </li>
-        <% }) %>
-      </ul>
-    <% } else { %>
-      <span>Aucun abonnement.</span>
-    <% } %>
-  </div>
-</div>
+  <% } %>
+});
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
