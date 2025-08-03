@@ -340,5 +340,41 @@ function prevSlide(postId) {
     });
   });
 <% } %>
+<div class="profile-lists" style="display: flex; gap: 32px; margin: 24px 0;">
+  <div>
+    <strong>Abonnés :</strong>
+    <% if (user.followers && user.followers.length > 0) { %>
+      <ul>
+        <% user.followers.forEach(f => { %>
+          <li>
+            <a href="/user/<%= f._id %>">
+              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
+              <%= f.username %>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <span>Aucun abonné.</span>
+    <% } %>
+  </div>
+  <div>
+    <strong>Abonnements :</strong>
+    <% if (user.following && user.following.length > 0) { %>
+      <ul>
+        <% user.following.forEach(f => { %>
+          <li>
+            <a href="/user/<%= f._id %>">
+              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
+              <%= f.username %>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <span>Aucun abonnement.</span>
+    <% } %>
+  </div>
+</div>
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
