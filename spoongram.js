@@ -484,8 +484,7 @@ app.get('/profile', async (req, res) => {
     likesByMonth[month] = (likesByMonth[month] || 0) + (post.likes ? post.likes.length : 0);
   });
 
-  res.render('profile', { user, posts, statsByMonth, likesByMonth });
-});
+res.render('profile', { user, posts, statsByMonth, likesByMonth });});
 
 // Page d’un hashtag
 app.get('/hashtag/:tag', async (req, res) => {
