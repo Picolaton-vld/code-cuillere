@@ -5,6 +5,21 @@
     <button type="submit"><i class="fas fa-search"></i> Rechercher</button>
   </form>
   <h2>Résultats pour "<%= q %>"</h2>
+
+  <% if (users && users.length > 0) { %>
+    <h3>Comptes trouvés :</h3>
+    <ul style="margin-bottom:24px;">
+      <% users.forEach(user => { %>
+        <li style="margin-bottom:8px;">
+          <a href="/user/<%= user._id %>" style="display:flex;align-items:center;gap:8px;">
+            <img src="<%= user.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;">
+            <span><%= user.username %></span>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+
   <div class="posts">
     <% if (posts.length === 0) { %>
       <p>Aucun résultat trouvé.</p>
