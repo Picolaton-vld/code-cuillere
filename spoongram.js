@@ -23,7 +23,7 @@ mongoose.connection.on('connected', () => console.log('Connected to MongoDB'));
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  avatar: { type: String, default: '/images/default-avatar.jpg' },
+  avatar: { type: String, default: '/images/default-avatar.png' },
   createdAt: { type: Date, default: Date.now },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
