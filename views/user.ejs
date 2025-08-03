@@ -1,5 +1,16 @@
 <%- include('partials/header') %>
 <style>
+.profile-lists ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.profile-lists li {
+  margin-bottom: 7px;
+}
+.profile-lists img {
+  box-shadow: 0 1px 5px #0001;
+}
 .user-posts-grid {
   display: flex;
   flex-wrap: wrap;
@@ -109,6 +120,42 @@
         <a href="/post/<%= post._id %>" class="user-post-link">Voir le post</a>
       </div>
     <% }); %>
+<div class="profile-lists" style="display: flex; gap: 32px; margin: 24px 0;">
+  <div>
+    <strong>Abonnés :</strong>
+    <% if (user.followers && user.followers.length > 0) { %>
+      <ul>
+        <% user.followers.forEach(f => { %>
+          <li>
+            <a href="/user/<%= f._id %>">
+              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
+              <%= f.username %>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <span>Aucun abonné.</span>
+    <% } %>
+  </div>
+  <div>
+    <strong>Abonnements :</strong>
+    <% if (user.following && user.following.length > 0) { %>
+      <ul>
+        <% user.following.forEach(f => { %>
+          <li>
+            <a href="/user/<%= f._id %>">
+              <img src="<%= f.avatar || '/images/default-avatar.jpg' %>" alt="avatar" style="width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;">
+              <%= f.username %>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <span>Aucun abonnement.</span>
+    <% } %>
+  </div>
+</div>
   </div>
 </main>
 <%- include('partials/footer') %>
