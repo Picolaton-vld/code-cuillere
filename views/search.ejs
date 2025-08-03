@@ -15,6 +15,16 @@
             <img src="<%= user.avatar || '/images/default-avatar.jpg' %>" alt="Avatar" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;">
             <span><%= user.username %></span>
           </a>
+<% if (currentUser && currentUser._id.toString() !== user._id.toString() && !user.followers.some(f => f.toString() === currentUser._id.toString())) { %>
+  <form action="/follow/<%= user._id %>" method="POST" style="display:inline;">
+    <button type="submit">S'abonner</button>
+  </form>
+<% } %>
+<% if (currentUser && currentUser._id.toString() !== user._id.toString() && user.followers.some(f => f.toString() === currentUser._id.toString())) { %>
+  <form action="/unfollow/<%= user._id %>" method="POST" style="display:inline;">
+    <button type="submit">Se désabonner</button>
+  </form>
+<% } %>
         </li>
       <% }) %>
     </ul>
