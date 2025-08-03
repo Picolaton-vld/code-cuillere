@@ -638,25 +638,25 @@ app.post('/album/:id/edit', async (req, res) => {
   req.flash('success', "Album modifié !");
   res.redirect('/album/' + album._id);
 });
-
 // Recherche globale (barre de recherche)
+// Permet de retrouver aussi les comptes même s'ils n'ont jamais posté
 app.get('/search', async (req, res) => {
   const q = req.query.q || "";
   let posts = [];
+  let users = [];
   const hashtagRegex = /#(\w+)/g;
   let hashtags = [];
   let query = {};
 
-  // Recherche par hashtag
   if (q.match(hashtagRegex)) {
     hashtags = [...q.matchAll(hashtagRegex)].map(m => m[1].toLowerCase());
     query.caption = { $regex: hashtags.map(h => `#${h}`).join('|'), $options: 'i' };
   } else if (q.startsWith("@")) {
     // Recherche par nom d'utilisateur (ex: @toto)
     const username = q.replace(/^@/, '');
-    const user = await User.findOne({ username: new RegExp("^" + username + "$", "i") });
-    if (user) query.userId = user._id;
-    else query = { _id: null }; // Aucun résultat si user inconnu
+    users = await User.find({ username: new RegExp(username, "i") });
+    if (users.length > 0) query.userId = { $in: users.map(u => u._id) };
+    else query = { _id: null };
   } else if (q) {
     // Recherche générale : lieu, légende, pseudo
     query.$or = [
@@ -664,13 +664,17 @@ app.get('/search', async (req, res) => {
       { "location.name": { $regex: q, $options: 'i' } }
     ];
     // Ajout recherche par pseudo
-    const users = await User.find({ username: { $regex: q, $options: 'i' } });
+    users = await User.find({ username: { $regex: q, $options: 'i' } });
     if (users.length > 0) query.$or.push({ userId: { $in: users.map(u => u._id) } });
   }
 
   posts = await Post.find(query).populate('userId').sort({ createdAt: -1 });
 
-  res.render('search', { posts, q });
+  // On retire les users qui sont déjà rattachés à un post pour éviter les doublons.
+  let userIdsWithPosts = posts.map(p => p.userId._id.toString());
+  let extraUsers = users.filter(u => !userIdsWithPosts.includes(u._id.toString()));
+
+  res.render('search', { posts, q, users: extraUsers });
 });
 const QRCode = require('qrcode');
 
